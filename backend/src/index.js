@@ -24,6 +24,13 @@ app.get('/api/salud', (req, res) => res.json({ ok: true }));
 // Frontend estático
 app.use(express.static(path.join(__dirname, '..', '..', 'frontend')));
 
+// Manejador de errores: cualquier error no controlado responde en JSON
+// (si no, Express devuelve HTML y el frontend no puede leer el mensaje).
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Error interno del servidor' });
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

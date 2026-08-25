@@ -45,9 +45,13 @@ node src/db/seed.js
 
 ## Módulos de la aplicación
 
-- **Inventario:** alta de productos (costo, precio de venta, stock mínimo) y registro de entradas/salidas de stock.
+- **Dashboard:** resumen general — stock total, entradas/salidas del día, alertas, gráfico de movimientos y accesos rápidos.
+- **Productos:** alta, edición y eliminación de productos (costo, precio de venta, stock mínimo), registro de entradas/salidas de stock y su historial.
 - **Movimientos de dinero:** registro de ingresos (ventas, otros) y egresos (compra de insumos, gastos operativos, pauta publicitaria, etc.).
 - **Reportes:** rentabilidad por producto (unidades vendidas, ingresos, costo de lo vendido, utilidad, margen) y balance general.
+- **Alertas:** listado de productos sin stock o con stock por debajo del mínimo.
+
+La interfaz es un panel de administración (sidebar + tarjetas) hecho en HTML/CSS/JS plano, sin librerías externas.
 
 ## Documentación
 

@@ -52,8 +52,16 @@ router.put('/:id', (req, res) => {
 
 // DELETE /api/productos/:id
 router.delete('/:id', (req, res) => {
-  const info = db.prepare('DELETE FROM productos WHERE id = ?').run(req.params.id);
-  if (info.changes === 0) return res.status(404).json({ error: 'Producto no encontrado' });
+  const existente = db.prepare('SELECT * FROM productos WHERE id = ?').get(req.params.id);
+  if (!existente) return res.status(404).json({ error: 'Producto no encontrado' });
+
+  const tieneMovInventario = db.prepare('SELECT 1 FROM movimientos_inventario WHERE producto_id = ? LIMIT 1').get(req.params.id);
+  const tieneMovDinero = db.prepare('SELECT 1 FROM movimientos_dinero WHERE producto_id = ? LIMIT 1').get(req.params.id);
+  if (tieneMovInventario || tieneMovDinero) {
+    return res.status(400).json({ error: 'No se puede eliminar: el producto tiene movimientos de inventario o de dinero registrados.' });
+  }
+
+  db.prepare('DELETE FROM productos WHERE id = ?').run(req.params.id);
   res.status(204).send();
 });
 
