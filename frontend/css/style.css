@@ -159,9 +159,61 @@ button { font-family: inherit; }
   box-shadow: var(--shadow);
 }
 
-.sidebar-cerrar {
+/* ---------- Barra de navegación inferior (móvil) ---------- */
+
+.tabbar-movil {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  gap: 0.15rem;
+  width: calc(100% - 24px);
+  max-width: 430px;
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 0.4rem;
+  box-shadow: 0 12px 30px rgba(33, 31, 54, 0.16);
+}
+
+.tabbar-movil a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0.2rem;
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+.tabbar-movil a .tab-icono { position: relative; display: flex; }
+
+.tabbar-movil a .tab-icono .punto {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--red);
+  border: 2px solid var(--surface);
   display: none;
 }
+
+.tabbar-movil a .tab-icono .punto.visible { display: block; }
+
+.tabbar-movil a.activo {
+  background: var(--purple);
+  color: white;
+}
+
+.tabbar-movil a.activo .tab-icono .punto { border-color: var(--purple); }
 
 /* ---------- Topbar ---------- */
 
@@ -177,15 +229,6 @@ button { font-family: inherit; }
   position: sticky;
   top: 0;
   z-index: 10;
-}
-
-.btn-hamburguesa {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--text);
-  cursor: pointer;
-  padding: 0.3rem;
 }
 
 .buscador {
@@ -727,45 +770,22 @@ tbody tr:hover { background: var(--surface-muted); }
 }
 
 @media (max-width: 900px) {
+  /* En pantallas angostas, el sidebar desaparece y la navegación pasa a
+     la barra inferior tipo app móvil (.tabbar-movil). */
   body { grid-template-columns: 1fr; }
-
-  .sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: 258px;
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
-  }
-
-  body.sidebar-abierto .sidebar { transform: translateX(0); }
-
-  .sidebar-cerrar {
-    display: inline-flex;
-    align-self: flex-end;
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    margin-bottom: 0.5rem;
-  }
-
+  .sidebar { display: none; }
   .topbar, main.contenido { grid-column: 1; }
+  main.contenido { padding-bottom: 6.5rem; }
+}
 
-  .btn-hamburguesa { display: inline-flex; }
-
-  body.sidebar-abierto::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(20, 18, 40, 0.35);
-    z-index: 15;
-  }
+@media (min-width: 901px) {
+  .tabbar-movil { display: none; }
 }
 
 @media (max-width: 600px) {
   .tarjetas-stats, .acciones-rapidas, .tira-resumen { grid-template-columns: 1fr; }
   .fila-campos { grid-template-columns: 1fr; }
-  main.contenido { padding: 1.1rem; }
+  main.contenido { padding: 1.1rem 1.1rem 6.5rem; }
   .topbar { padding: 0.75rem 1rem; }
   .buscador { max-width: none; }
 }

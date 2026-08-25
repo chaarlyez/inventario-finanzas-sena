@@ -27,9 +27,9 @@ function construirIcono(nombre, tam = 20) {
 }
 
 const NAV = [
-  { key: 'dashboard', label: 'Dashboard', href: 'index.html', icon: 'home' },
+  { key: 'dashboard', label: 'Dashboard', labelCorto: 'Inicio', href: 'index.html', icon: 'home' },
   { key: 'productos', label: 'Productos', href: 'inventario.html', icon: 'box' },
-  { key: 'dinero', label: 'Movimientos de dinero', href: 'movimientos.html', icon: 'cash' },
+  { key: 'dinero', label: 'Movimientos de dinero', labelCorto: 'Dinero', href: 'movimientos.html', icon: 'cash' },
   { key: 'reportes', label: 'Reportes', href: 'reportes.html', icon: 'chart' },
   { key: 'alertas', label: 'Alertas', href: 'alertas.html', icon: 'alert' },
 ];
@@ -41,7 +41,6 @@ function construirLayout() {
   const sidebar = document.createElement('aside');
   sidebar.className = 'sidebar';
   sidebar.innerHTML = `
-    <button type="button" class="sidebar-cerrar" aria-label="Cerrar menú">${construirIcono('close', 22)}</button>
     <div class="logo">
       <span class="logo-icon">${construirIcono('package', 20)}</span>
       <span class="logo-text">INVENTARIO<b>SENA</b></span>
@@ -68,7 +67,6 @@ function construirLayout() {
   const topbar = document.createElement('header');
   topbar.className = 'topbar';
   topbar.innerHTML = `
-    <button type="button" class="btn-hamburguesa" aria-label="Abrir menú">${construirIcono('menu', 22)}</button>
     <label class="buscador">
       ${construirIcono('search', 17)}
       <input type="search" id="buscarGlobal" placeholder="${placeholderBusqueda}" autocomplete="off" />
@@ -90,18 +88,21 @@ function construirLayout() {
     </div>
   `;
 
+  const tabbarMovil = document.createElement('nav');
+  tabbarMovil.className = 'tabbar-movil';
+  tabbarMovil.innerHTML = NAV.map((item) => `
+    <a href="${item.href}" class="${item.key === paginaActual ? 'activo' : ''}">
+      <span class="tab-icono">
+        ${construirIcono(item.icon, 20)}
+        ${item.key === 'alertas' ? '<span class="punto" id="puntoAlertasMovil"></span>' : ''}
+      </span>
+      <span>${item.labelCorto || item.label}</span>
+    </a>
+  `).join('');
+
+  document.body.prepend(tabbarMovil);
   document.body.prepend(topbar);
   document.body.prepend(sidebar);
-
-  const abrirMenu = () => document.body.classList.add('sidebar-abierto');
-  const cerrarMenu = () => document.body.classList.remove('sidebar-abierto');
-  topbar.querySelector('.btn-hamburguesa').addEventListener('click', abrirMenu);
-  sidebar.querySelector('.sidebar-cerrar').addEventListener('click', cerrarMenu);
-  document.body.addEventListener('click', (e) => {
-    if (document.body.classList.contains('sidebar-abierto') && !sidebar.contains(e.target) && !e.target.closest('.btn-hamburguesa')) {
-      cerrarMenu();
-    }
-  });
 
   document.getElementById('buscarGlobal').addEventListener('input', (e) => {
     if (typeof window.onBuscarGlobal === 'function') window.onBuscarGlobal(e.target.value.trim().toLowerCase());
@@ -114,8 +115,8 @@ async function _actualizarPuntoAlertas() {
   try {
     const productos = await apiGet('/productos');
     const hayAlertas = productos.some((p) => p.stock_actual <= p.stock_minimo);
-    const punto = document.getElementById('puntoAlertas');
-    if (punto) punto.classList.toggle('visible', hayAlertas);
+    document.getElementById('puntoAlertas')?.classList.toggle('visible', hayAlertas);
+    document.getElementById('puntoAlertasMovil')?.classList.toggle('visible', hayAlertas);
   } catch {
     // silencioso: si el API no responde todavía, no rompe el layout
   }
