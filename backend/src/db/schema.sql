@@ -1,6 +1,43 @@
 -- Esquema de la base de datos del proyecto
 -- Inventario + entradas/salidas de dinero + rentabilidad
 
+-- Ubicaciones físicas donde se guarda el inventario (bodega, tienda, etc.)
+CREATE TABLE IF NOT EXISTS ambientes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL UNIQUE,
+  descripcion TEXT,
+  creado_en TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Proveedores/fabricantes a los que se les compra el inventario
+CREATE TABLE IF NOT EXISTS distribuidores (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  contacto TEXT,
+  telefono TEXT,
+  email TEXT,
+  notas TEXT,
+  creado_en TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Cuentas que pueden entrar a la aplicación
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  rol TEXT NOT NULL DEFAULT 'administrador' CHECK (rol IN ('administrador', 'colaborador')),
+  creado_en TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Sesiones activas (token de la cookie de sesión)
+CREATE TABLE IF NOT EXISTS sesiones (
+  token TEXT PRIMARY KEY,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  creado_en TEXT NOT NULL DEFAULT (datetime('now')),
+  expira_en TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS productos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL,
@@ -10,6 +47,8 @@ CREATE TABLE IF NOT EXISTS productos (
   precio_venta REAL NOT NULL DEFAULT 0,
   stock_actual INTEGER NOT NULL DEFAULT 0,
   stock_minimo INTEGER NOT NULL DEFAULT 0,
+  ambiente_id INTEGER REFERENCES ambientes(id),
+  distribuidor_id INTEGER REFERENCES distribuidores(id),
   creado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

@@ -23,11 +23,12 @@ function render() {
             </div>
           </td>
           <td>${badgeCategoria(p.categoria)}</td>
+          <td>${p.ambiente_nombre || '—'}</td>
           <td>${p.stock_minimo}</td>
           <td><a class="btn btn-secundario" href="inventario.html?movimiento=entrada&producto=${p.id}">${icono('entrada', 15)} Registrar entrada</a></td>
         </tr>
       `).join('')
-    : '<tr class="tabla-vacio-fila"><td colspan="4">Ningún producto sin stock. 🎉</td></tr>';
+    : '<tr class="tabla-vacio-fila"><td colspan="5">Ningún producto sin stock. 🎉</td></tr>';
 
   const tbodyBajo = document.getElementById('tablaStockBajo');
   tbodyBajo.innerHTML = stockBajo.length
@@ -40,12 +41,13 @@ function render() {
             </div>
           </td>
           <td>${badgeCategoria(p.categoria)}</td>
+          <td>${p.ambiente_nombre || '—'}</td>
           <td>${p.stock_actual}</td>
           <td>${p.stock_minimo}</td>
           <td><a class="btn btn-secundario" href="inventario.html?movimiento=entrada&producto=${p.id}">${icono('entrada', 15)} Registrar entrada</a></td>
         </tr>
       `).join('')
-    : '<tr class="tabla-vacio-fila"><td colspan="5">Ningún producto con stock bajo. 🎉</td></tr>';
+    : '<tr class="tabla-vacio-fila"><td colspan="6">Ningún producto con stock bajo. 🎉</td></tr>';
 }
 
 async function cargar() {

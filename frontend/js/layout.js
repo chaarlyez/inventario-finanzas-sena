@@ -20,6 +20,13 @@ const ICONOS = {
   chevronRight: '<path d="m9 6 6 6-6 6"/>',
   externalLink: '<path d="M7 17 17 7"/><path d="M8 7h9v9"/>',
   package: '<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 21v-8"/>',
+  mapPin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  users: '<path d="M17 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 5 18.5V20"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M19 20v-1.5a3 3 0 0 0-2.2-2.9"/><path d="M15 4.2a3.5 3.5 0 0 1 0 6.6"/>',
+  truck: '<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/>',
+  arrowLeftRight: '<path d="m8 3-4 4 4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+  qrCode: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M20 14h1v1h-1z"/><path d="M14 20h1v1h-1z"/><path d="M20 20h1v1h-1z"/>',
+  chevronDown: '<path d="m6 9 6 6 6-6"/>',
 };
 
 function construirIcono(nombre, tam = 20) {
@@ -27,11 +34,15 @@ function construirIcono(nombre, tam = 20) {
 }
 
 const NAV = [
-  { key: 'dashboard', label: 'Dashboard', labelCorto: 'Inicio', href: 'index.html', icon: 'home' },
+  { key: 'dashboard', label: 'Resumen', labelCorto: 'Inicio', href: 'index.html', icon: 'home' },
   { key: 'productos', label: 'Productos', href: 'inventario.html', icon: 'box' },
+  { key: 'inventario', label: 'Inventario', labelCorto: 'Stock', href: 'movimientos-stock.html', icon: 'arrowLeftRight' },
+  { key: 'ambientes', label: 'Ambientes', href: 'ambientes.html', icon: 'mapPin' },
+  { key: 'distribuidores', label: 'Distribuidores', labelCorto: 'Distrib.', href: 'distribuidores.html', icon: 'truck' },
   { key: 'dinero', label: 'Movimientos de dinero', labelCorto: 'Dinero', href: 'movimientos.html', icon: 'cash' },
   { key: 'reportes', label: 'Reportes', href: 'reportes.html', icon: 'chart' },
   { key: 'alertas', label: 'Alertas', href: 'alertas.html', icon: 'alert' },
+  { key: 'usuarios', label: 'Usuarios', href: 'usuarios.html', icon: 'users', soloAdmin: true },
 ];
 
 function construirLayout() {
@@ -47,7 +58,7 @@ function construirLayout() {
     </div>
     <ul class="nav-lista">
       ${NAV.map((item) => `
-        <li>
+        <li data-solo-admin="${item.soloAdmin ? '1' : ''}" ${item.soloAdmin ? 'hidden' : ''}>
           <a href="${item.href}" class="${item.key === paginaActual ? 'activo' : ''}">
             ${construirIcono(item.icon, 19)}
             <span>${item.label}</span>
@@ -55,12 +66,18 @@ function construirLayout() {
         </li>
       `).join('')}
     </ul>
-    <div class="sidebar-card">
-      <div class="titulo">a lo maldita sea</div>
-      <div class="desc">Inventario y finanzas de la marca, hecho a la medida por Charly.</div>
-      <a class="enlace" href="https://github.com/chaarlyez/inventario-finanzas-sena" target="_blank" rel="noopener">
-        Ver repositorio ${construirIcono('externalLink', 14)}
-      </a>
+    <div class="sidebar-perfil">
+      <button type="button" class="usuario" id="botonUsuario">
+        <div class="avatar" id="avatarIniciales">…</div>
+        <div class="usuario-texto">
+          <div class="nombre" id="nombreUsuario">Cargando…</div>
+          <div class="rol" id="rolUsuario"></div>
+        </div>
+        ${construirIcono('chevronDown', 16)}
+      </button>
+      <div class="usuario-menu" id="menuUsuario" hidden>
+        <button type="button" id="botonCerrarSesion">${construirIcono('logout', 16)} Cerrar sesión</button>
+      </div>
     </div>
   `;
 
@@ -72,6 +89,9 @@ function construirLayout() {
       <input type="search" id="buscarGlobal" placeholder="${placeholderBusqueda}" autocomplete="off" />
     </label>
     <div class="topbar-spacer"></div>
+    <button type="button" class="icono-boton" id="botonEscanearQr" title="Escanear código">
+      ${construirIcono('qrCode', 18)}
+    </button>
     <a class="icono-boton" href="alertas.html" title="Alertas">
       ${construirIcono('bell', 18)}
       <span class="punto" id="puntoAlertas"></span>
@@ -79,26 +99,25 @@ function construirLayout() {
     <a class="icono-boton" href="https://github.com/chaarlyez/inventario-finanzas-sena#readme" target="_blank" rel="noopener" title="Ayuda">
       ${construirIcono('help', 18)}
     </a>
-    <div class="usuario">
-      <div class="avatar">CH</div>
-      <div class="usuario-texto">
-        <div class="nombre">Charly</div>
-        <div class="rol">a lo maldita sea</div>
-      </div>
-    </div>
   `;
 
+  const ITEMS_TABBAR = ['dashboard', 'productos', 'inventario', 'dinero'];
   const tabbarMovil = document.createElement('nav');
   tabbarMovil.className = 'tabbar-movil';
-  tabbarMovil.innerHTML = NAV.map((item) => `
+  tabbarMovil.innerHTML = NAV.filter((item) => ITEMS_TABBAR.includes(item.key)).map((item) => `
     <a href="${item.href}" class="${item.key === paginaActual ? 'activo' : ''}">
-      <span class="tab-icono">
-        ${construirIcono(item.icon, 20)}
-        ${item.key === 'alertas' ? '<span class="punto" id="puntoAlertasMovil"></span>' : ''}
-      </span>
+      <span class="tab-icono">${construirIcono(item.icon, 20)}</span>
       <span>${item.labelCorto || item.label}</span>
     </a>
-  `).join('');
+  `).join('') + `
+    <button type="button" class="tab-mas" id="botonMasMovil">
+      <span class="tab-icono">
+        ${construirIcono('menu', 20)}
+        <span class="punto" id="puntoAlertasMovil"></span>
+      </span>
+      <span>Más</span>
+    </button>
+  `;
 
   document.body.prepend(tabbarMovil);
   document.body.prepend(topbar);
@@ -108,7 +127,59 @@ function construirLayout() {
     if (typeof window.onBuscarGlobal === 'function') window.onBuscarGlobal(e.target.value.trim().toLowerCase());
   });
 
+  document.getElementById('botonMasMovil').addEventListener('click', () => _abrirMenuMas(paginaActual));
+  document.getElementById('botonEscanearQr').addEventListener('click', () => window.Layout.abrirEscanerQr());
+
+  const botonUsuario = document.getElementById('botonUsuario');
+  const menuUsuario = document.getElementById('menuUsuario');
+  botonUsuario.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menuUsuario.hidden = !menuUsuario.hidden;
+  });
+  document.addEventListener('click', () => { menuUsuario.hidden = true; });
+  document.getElementById('botonCerrarSesion').addEventListener('click', async () => {
+    await apiPost('/auth/logout', {}).catch(() => {});
+    window.location.href = 'login.html';
+  });
+
   _actualizarPuntoAlertas();
+  _cargarUsuarioActual();
+}
+
+function _abrirMenuMas(paginaActual) {
+  const ITEMS_TABBAR = ['dashboard', 'productos', 'inventario', 'dinero'];
+  const resto = NAV.filter((item) => !ITEMS_TABBAR.includes(item.key) && !(item.soloAdmin && !window.Layout.usuarioActual?.esAdmin));
+  _abrirModal('Más opciones', `
+    <div class="menu-mas-lista">
+      ${resto.map((item) => `
+        <a href="${item.href}" class="menu-mas-item ${item.key === paginaActual ? 'activo' : ''}">
+          ${construirIcono(item.icon, 18)}
+          <span>${item.label}</span>
+        </a>
+      `).join('')}
+    </div>
+  `);
+}
+
+// Trae el usuario de la sesión activa y ajusta la interfaz según su rol.
+async function _cargarUsuarioActual() {
+  try {
+    const usuario = await apiGet('/auth/yo');
+    const iniciales = usuario.nombre.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+    document.getElementById('avatarIniciales').textContent = iniciales;
+    document.getElementById('nombreUsuario').textContent = usuario.nombre;
+    document.getElementById('rolUsuario').textContent = usuario.rol === 'administrador' ? 'Administrador' : 'Colaborador';
+
+    window.Layout.usuarioActual = { ...usuario, esAdmin: usuario.rol === 'administrador' };
+
+    if (usuario.rol !== 'administrador') {
+      document.querySelectorAll('[data-solo-admin="1"]').forEach((el) => { el.hidden = true; });
+    } else {
+      document.querySelectorAll('[data-solo-admin="1"]').forEach((el) => { el.hidden = false; });
+    }
+  } catch {
+    // apiGet ya redirige a login.html si la sesión no es válida.
+  }
 }
 
 async function _actualizarPuntoAlertas() {
@@ -124,13 +195,16 @@ async function _actualizarPuntoAlertas() {
 
 // ---------- Modal genérico ----------
 
-function _abrirModal(tituloHtml, contenidoHtml) {
+let _alCerrarModal = null;
+
+function _abrirModal(tituloHtml, contenidoHtml, opciones = {}) {
   _cerrarModal();
+  _alCerrarModal = opciones.onClose || null;
   const overlay = document.createElement('div');
-  overlay.className = 'overlay-modal';
+  overlay.className = `overlay-modal ${opciones.claseModal || ''}`;
   overlay.id = 'overlayModal';
   overlay.innerHTML = `
-    <div class="modal">
+    <div class="modal ${opciones.tipo === 'drawer' ? 'modal-drawer' : ''}">
       <div class="modal-cabecera">
         <h2>${tituloHtml}</h2>
         <button type="button" class="modal-cerrar" aria-label="Cerrar">${construirIcono('close', 20)}</button>
@@ -153,6 +227,11 @@ function _cerrarModal() {
   const overlay = document.getElementById('overlayModal');
   if (overlay) overlay.remove();
   document.removeEventListener('keydown', _escCierraModal);
+  if (_alCerrarModal) {
+    const fn = _alCerrarModal;
+    _alCerrarModal = null;
+    fn();
+  }
 }
 
 // ---------- Badges ----------
@@ -232,19 +311,19 @@ function _renderizarChart(contenedor, dias) {
     <svg viewBox="0 0 ${ancho} ${alto}" preserveAspectRatio="none">
       <defs>
         <linearGradient id="gradEntradas" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#7c5cfc" stop-opacity="0.28" />
-          <stop offset="100%" stop-color="#7c5cfc" stop-opacity="0" />
+          <stop offset="0%" stop-color="#6d28d9" stop-opacity="0.24" />
+          <stop offset="100%" stop-color="#6d28d9" stop-opacity="0" />
         </linearGradient>
         <linearGradient id="gradSalidas" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ef5da8" stop-opacity="0.25" />
-          <stop offset="100%" stop-color="#ef5da8" stop-opacity="0" />
+          <stop offset="0%" stop-color="#db2777" stop-opacity="0.2" />
+          <stop offset="100%" stop-color="#db2777" stop-opacity="0" />
         </linearGradient>
       </defs>
       ${filasGrid}
       <path d="${area('salidas')}" fill="url(#gradSalidas)" stroke="none" />
       <path d="${area('entradas')}" fill="url(#gradEntradas)" stroke="none" />
-      <path d="${linea('salidas')}" fill="none" stroke="#ef5da8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="${linea('entradas')}" fill="none" stroke="#7c5cfc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="${linea('salidas')}" fill="none" stroke="#db2777" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="${linea('entradas')}" fill="none" stroke="#6d28d9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
       ${etiquetasX}
     </svg>
   `;
@@ -258,6 +337,273 @@ function _debounce(fn, espera = 200) {
   };
 }
 
+// ---------- Movimientos de stock (entrada/salida/venta) reutilizables ----------
+// Usados desde Productos, Inventario y el detalle de producto, para no repetir
+// la misma lógica de formulario en cada página.
+
+async function _abrirModalMovimiento({ productoId, tipo, onExito } = {}) {
+  const productos = await apiGet('/productos');
+  const opciones = productos.map((p) => `<option value="${p.id}" ${p.id === productoId ? 'selected' : ''}>${p.nombre} (stock: ${p.stock_actual})</option>`).join('');
+
+  const overlay = _abrirModal('Registrar movimiento de stock', `
+    <form id="formMovimiento">
+      <label class="campo">Producto
+        <select name="producto_id" required>${opciones}</select>
+      </label>
+      <div class="fila-campos">
+        <label class="campo">Tipo
+          <select name="tipo" required>
+            <option value="entrada" ${tipo === 'entrada' ? 'selected' : ''}>Entrada</option>
+            <option value="salida" ${tipo === 'salida' ? 'selected' : ''}>Salida</option>
+          </select>
+        </label>
+        <label class="campo">Cantidad
+          <input name="cantidad" type="number" min="1" step="1" required />
+        </label>
+      </div>
+      <label class="campo">Motivo
+        <input name="motivo" placeholder="ej. compra, venta, ajuste" />
+      </label>
+      <p class="mensaje error" id="mensajeModal"></p>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-secundario" id="btnCancelarModal">Cancelar</button>
+        <button type="submit" class="btn btn-primario">Registrar</button>
+      </div>
+    </form>
+  `);
+
+  overlay.querySelector('#btnCancelarModal').addEventListener('click', _cerrarModal);
+  overlay.querySelector('#formMovimiento').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(e.target));
+    try {
+      await apiPost('/movimientos-inventario', {
+        producto_id: Number(datos.producto_id),
+        tipo: datos.tipo,
+        cantidad: Number(datos.cantidad),
+        motivo: datos.motivo || null,
+      });
+      _cerrarModal();
+      if (onExito) onExito();
+    } catch (err) {
+      overlay.querySelector('#mensajeModal').textContent = err.message;
+    }
+  });
+}
+
+async function _abrirModalVenta({ productoId, onExito } = {}) {
+  const productos = await apiGet('/productos');
+  if (productos.length === 0) return;
+
+  const productoInicial = productos.find((p) => p.id === productoId) || productos[0];
+  const opciones = productos.map((p) => `<option value="${p.id}" data-precio="${p.precio_venta}" ${p.id === productoInicial.id ? 'selected' : ''}>${p.nombre} (stock: ${p.stock_actual})</option>`).join('');
+
+  const overlay = _abrirModal('Registrar venta', `
+    <form id="formVenta">
+      <label class="campo">Producto
+        <select name="producto_id" id="selectProductoVenta" required>${opciones}</select>
+      </label>
+      <div class="fila-campos">
+        <label class="campo">Cantidad
+          <input name="cantidad" type="number" min="1" step="1" value="1" required />
+        </label>
+        <label class="campo">Precio unitario
+          <input name="precio_unitario" type="number" min="0" step="1" value="${productoInicial.precio_venta}" required />
+        </label>
+      </div>
+      <label class="campo">Nota (opcional)
+        <input name="descripcion" placeholder="ej. venta por Instagram" />
+      </label>
+      <p style="margin: 0 0 0.85rem; font-size: 0.9rem;">Total: <strong id="totalVenta">${formatoMoneda(productoInicial.precio_venta)}</strong></p>
+      <p class="mensaje error" id="mensajeModal"></p>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-secundario" id="btnCancelarModal">Cancelar</button>
+        <button type="submit" class="btn btn-primario">Registrar venta</button>
+      </div>
+    </form>
+  `);
+
+  const campoCantidad = overlay.querySelector('[name=cantidad]');
+  const campoPrecio = overlay.querySelector('[name=precio_unitario]');
+  const totalEl = overlay.querySelector('#totalVenta');
+  const actualizarTotal = () => { totalEl.textContent = formatoMoneda(Number(campoCantidad.value || 0) * Number(campoPrecio.value || 0)); };
+  campoCantidad.addEventListener('input', actualizarTotal);
+  campoPrecio.addEventListener('input', actualizarTotal);
+  overlay.querySelector('#selectProductoVenta').addEventListener('change', (e) => {
+    campoPrecio.value = e.target.selectedOptions[0].dataset.precio;
+    actualizarTotal();
+  });
+
+  overlay.querySelector('#btnCancelarModal').addEventListener('click', _cerrarModal);
+  overlay.querySelector('#formVenta').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(e.target));
+    try {
+      await apiPost('/ventas', {
+        producto_id: Number(datos.producto_id),
+        cantidad: Number(datos.cantidad),
+        precio_unitario: Number(datos.precio_unitario),
+        descripcion: datos.descripcion || null,
+      });
+      _cerrarModal();
+      if (onExito) onExito();
+    } catch (err) {
+      overlay.querySelector('#mensajeModal').textContent = err.message;
+    }
+  });
+}
+
+// ---------- Detalle de producto (drawer) ----------
+
+async function _abrirDetalleProducto(productoId, { onExito } = {}) {
+  const [producto, movimientos] = await Promise.all([
+    apiGet(`/productos/${productoId}`),
+    apiGet('/movimientos-inventario'),
+  ]);
+
+  const historial = movimientos.filter((m) => m.producto_id === productoId).slice(0, 8);
+  const estado = _badgeEstadoStock(producto);
+
+  const overlay = _abrirModal(producto.nombre, `
+    <p class="detalle-subtitulo">
+      <code>${producto.sku || 'sin SKU'}</code> · ${producto.categoria || 'Sin categoría'} ·
+      <span class="badge ${estado.clase}">${estado.texto}</span>
+    </p>
+
+    <div class="detalle-acciones">
+      <button type="button" class="btn btn-primario" data-accion="vender">${construirIcono('cash', 15)} Vender</button>
+      <button type="button" class="btn btn-secundario" data-accion="entrada">${construirIcono('entrada', 15)} Entrada</button>
+      <button type="button" class="btn btn-secundario" data-accion="salida">${construirIcono('salida', 15)} Salida</button>
+      <button type="button" class="btn btn-secundario" data-accion="editar">${construirIcono('pencil', 15)} Editar</button>
+    </div>
+
+    <div class="detalle-specs">
+      <div><span>Costo unitario</span><strong>${formatoMoneda(producto.costo_unitario)}</strong></div>
+      <div><span>Precio de venta</span><strong>${formatoMoneda(producto.precio_venta)}</strong></div>
+      <div><span>Stock actual</span><strong>${producto.stock_actual}</strong></div>
+      <div><span>Stock mínimo</span><strong>${producto.stock_minimo}</strong></div>
+      <div><span>Ambiente</span><strong>${producto.ambiente_nombre || '—'}</strong></div>
+      <div><span>Distribuidor</span><strong>${producto.distribuidor_nombre || '—'}</strong></div>
+    </div>
+
+    <h3 class="detalle-seccion">Código interno</h3>
+    <div class="detalle-codigo">
+      <code>${producto.sku || '—'}</code>
+      ${producto.sku ? `<button type="button" class="btn-icono" id="btnCopiarSku" title="Copiar código">${construirIcono('externalLink', 14)}</button>` : ''}
+    </div>
+
+    <h3 class="detalle-seccion">Movimientos recientes</h3>
+    <div class="detalle-timeline">
+      ${historial.length ? historial.map((m) => `
+        <div class="detalle-timeline-item">
+          <span class="punto ${m.tipo === 'entrada' ? 'punto-verde' : 'punto-rojo'}"></span>
+          <div>
+            <div class="titulo">${m.tipo === 'entrada' ? 'Entrada' : 'Salida'} de ${m.cantidad} unidad${m.cantidad === 1 ? '' : 'es'} ${m.motivo ? `· ${m.motivo}` : ''}</div>
+            <div class="fecha">${new Date(m.fecha).toLocaleString('es-CO')}</div>
+          </div>
+        </div>
+      `).join('') : '<p class="sin-alertas">Todavía no hay movimientos para este producto.</p>'}
+    </div>
+  `);
+
+  overlay.querySelector('[data-accion=vender]').addEventListener('click', () => _abrirModalVenta({ productoId, onExito }));
+  overlay.querySelector('[data-accion=entrada]').addEventListener('click', () => _abrirModalMovimiento({ productoId, tipo: 'entrada', onExito }));
+  overlay.querySelector('[data-accion=salida]').addEventListener('click', () => _abrirModalMovimiento({ productoId, tipo: 'salida', onExito }));
+  overlay.querySelector('[data-accion=editar]').addEventListener('click', () => {
+    window.location.href = `inventario.html?editar=${productoId}`;
+  });
+  overlay.querySelector('#btnCopiarSku')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(producto.sku);
+    } catch {
+      // clipboard puede no estar disponible (ej. sin HTTPS); no es crítico
+    }
+  });
+}
+
+// ---------- Escáner de código (cámara con BarcodeDetector, o manual) ----------
+
+async function _abrirEscanerQr() {
+  const soportaDeteccion = 'BarcodeDetector' in window;
+
+  const overlay = _abrirModal('Escanear código', `
+    <p class="mensaje">Ubica el código del producto dentro del recuadro, o ingrésalo manualmente.</p>
+    ${soportaDeteccion ? `
+      <div class="escaner-camara">
+        <video id="videoEscaner" autoplay playsinline muted></video>
+        <div class="escaner-marco"></div>
+      </div>
+      <p class="mensaje" id="mensajeCamara"></p>
+    ` : '<p class="mensaje error">Tu navegador no soporta escaneo por cámara. Ingresa el código manualmente.</p>'}
+    <form id="formCodigoManual" class="escaner-manual">
+      <label class="campo">Código del producto (SKU)
+        <input name="codigo" placeholder="ej. CAM-CLA-001" autofocus />
+      </label>
+      <button type="submit" class="btn btn-primario">Buscar</button>
+    </form>
+    <p class="mensaje error" id="mensajeEscaner"></p>
+  `, { onClose: () => _detenerCamaraEscaner() });
+
+  const buscarPorCodigo = async (codigo) => {
+    const texto = codigo.trim().toLowerCase();
+    if (!texto) return;
+    const productos = await apiGet('/productos');
+    const encontrado = productos.find((p) => (p.sku || '').toLowerCase() === texto);
+    if (!encontrado) {
+      overlay.querySelector('#mensajeEscaner').textContent = `No se encontró ningún producto con el código "${codigo}".`;
+      return;
+    }
+    _detenerCamaraEscaner();
+    _cerrarModal();
+    _abrirDetalleProducto(encontrado.id);
+  };
+
+  overlay.querySelector('#formCodigoManual').addEventListener('submit', (e) => {
+    e.preventDefault();
+    buscarPorCodigo(new FormData(e.target).get('codigo'));
+  });
+
+  if (soportaDeteccion) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      _streamCamaraActivo = stream;
+      const video = overlay.querySelector('#videoEscaner');
+      video.srcObject = stream;
+      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+
+      const bucle = async () => {
+        if (!_streamCamaraActivo) return;
+        try {
+          const codigos = await detector.detect(video);
+          if (codigos.length > 0) {
+            buscarPorCodigo(codigos[0].rawValue);
+            return;
+          }
+        } catch {
+          // frame no decodificable todavía, seguimos intentando
+        }
+        _rafEscaner = requestAnimationFrame(bucle);
+      };
+      _rafEscaner = requestAnimationFrame(bucle);
+    } catch {
+      const mensajeCamara = overlay.querySelector('#mensajeCamara');
+      if (mensajeCamara) mensajeCamara.textContent = 'No se pudo acceder a la cámara. Usa el código manual.';
+    }
+  }
+}
+
+let _streamCamaraActivo = null;
+let _rafEscaner = null;
+
+function _detenerCamaraEscaner() {
+  if (_rafEscaner) cancelAnimationFrame(_rafEscaner);
+  _rafEscaner = null;
+  if (_streamCamaraActivo) {
+    _streamCamaraActivo.getTracks().forEach((t) => t.stop());
+    _streamCamaraActivo = null;
+  }
+}
+
 window.Layout = {
   icono: construirIcono,
   abrirModal: _abrirModal,
@@ -269,6 +615,10 @@ window.Layout = {
   claveDia: _claveDia,
   renderizarChart: _renderizarChart,
   debounce: _debounce,
+  abrirModalMovimiento: _abrirModalMovimiento,
+  abrirModalVenta: _abrirModalVenta,
+  abrirDetalleProducto: _abrirDetalleProducto,
+  abrirEscanerQr: _abrirEscanerQr,
 };
 
 construirLayout();

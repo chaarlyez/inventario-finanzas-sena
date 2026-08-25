@@ -1,0 +1,126 @@
+/* Página de login: no usa el AppShell (sidebar/topbar), así que anula el
+   grid que style.css define para el body. */
+
+body.pagina-login {
+  display: block;
+  background: var(--surface);
+}
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 45% 55%;
+}
+
+.login-marca {
+  background: linear-gradient(160deg, var(--purple-900), var(--purple-950));
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem;
+  gap: 0.75rem;
+}
+
+.login-marca-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.5rem;
+}
+
+.login-marca-logo .logo-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-marca-texto {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.login-marca-slogan {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+.login-marca-desc {
+  color: var(--purple-100);
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.login-formulario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.login-caja {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-caja h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+  color: var(--purple-950);
+}
+
+.login-caja .subtitulo {
+  color: var(--muted);
+  margin: 0 0 1.75rem;
+  font-size: 0.9rem;
+}
+
+.login-caja .campo {
+  margin-bottom: 1.1rem;
+}
+
+.login-caja .campo input {
+  height: 44px;
+}
+
+.login-boton {
+  width: 100%;
+  height: 44px;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+#mensajeLogin {
+  min-height: 1.1em;
+  margin-bottom: 0.25rem;
+}
+
+.login-ayuda {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 860px) {
+  .login-shell { grid-template-columns: 1fr; }
+
+  .login-marca {
+    padding: 2rem 1.5rem;
+    min-height: 160px;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .login-marca-slogan, .login-marca-desc { display: none; }
+
+  .login-formulario { padding: 2rem 1.25rem; }
+}

@@ -1,14 +1,15 @@
-const { icono, abrirModal, cerrarModal, badgeEstadoStock, badgeCategoria, debounce } = window.Layout;
+const { icono, abrirModal, cerrarModal, badgeEstadoStock, badgeCategoria, debounce, abrirModalMovimiento, abrirModalVenta, abrirDetalleProducto } = window.Layout;
 
 let productosCache = [];
-let movimientosCache = [];
+let ambientesCache = [];
+let distribuidoresCache = [];
 let textoBusqueda = '';
 
 function pintarBotonesCabecera() {
   document.getElementById('btnNuevoProducto').innerHTML = `${icono('plus', 17)} Nuevo producto`;
   document.getElementById('btnRegistrarMovimiento').innerHTML = `${icono('entrada', 17)} Registrar movimiento`;
   document.getElementById('btnNuevoProducto').addEventListener('click', () => abrirModalProducto());
-  document.getElementById('btnRegistrarMovimiento').addEventListener('click', () => abrirModalMovimiento());
+  document.getElementById('btnRegistrarMovimiento').addEventListener('click', () => abrirModalMovimiento({ onExito: recargar }));
 }
 
 function mostrarMensaje(texto, tipo = '') {
@@ -21,24 +22,36 @@ function mostrarMensaje(texto, tipo = '') {
 // ---------- Carga de datos ----------
 
 async function cargarTodo() {
-  const [productos, movimientos] = await Promise.all([
+  const [productos, ambientes, distribuidores] = await Promise.all([
     apiGet('/productos'),
-    apiGet('/movimientos-inventario'),
+    apiGet('/ambientes'),
+    apiGet('/distribuidores'),
   ]);
   productosCache = productos;
-  movimientosCache = movimientos;
-  poblarFiltroCategorias();
+  ambientesCache = ambientes;
+  distribuidoresCache = distribuidores;
+  poblarFiltros();
   aplicarFiltros();
-  renderHistorial();
 }
 
-function poblarFiltroCategorias() {
-  const select = document.getElementById('filtroCategoria');
-  const actual = select.value;
+async function recargar() {
+  await cargarTodo();
+  mostrarMensaje('Listo.', 'exito');
+}
+
+function poblarFiltros() {
+  const selectCategoria = document.getElementById('filtroCategoria');
+  const actualCategoria = selectCategoria.value;
   const categorias = [...new Set(productosCache.map((p) => p.categoria).filter(Boolean))].sort();
-  select.innerHTML = '<option value="">Todas las categorías</option>' +
+  selectCategoria.innerHTML = '<option value="">Todas las categorías</option>' +
     categorias.map((c) => `<option value="${c}">${c}</option>`).join('');
-  if (categorias.includes(actual)) select.value = actual;
+  if (categorias.includes(actualCategoria)) selectCategoria.value = actualCategoria;
+
+  const selectAmbiente = document.getElementById('filtroAmbiente');
+  const actualAmbiente = selectAmbiente.value;
+  selectAmbiente.innerHTML = '<option value="">Todos los ambientes</option>' +
+    ambientesCache.map((a) => `<option value="${a.id}">${a.nombre}</option>`).join('');
+  if (actualAmbiente) selectAmbiente.value = actualAmbiente;
 }
 
 function estadoDe(p) {
@@ -49,10 +62,12 @@ function estadoDe(p) {
 
 function aplicarFiltros() {
   const categoria = document.getElementById('filtroCategoria').value;
+  const ambienteId = document.getElementById('filtroAmbiente').value;
   const estado = document.getElementById('filtroEstado').value;
 
   const filtrados = productosCache.filter((p) => {
     if (categoria && p.categoria !== categoria) return false;
+    if (ambienteId && String(p.ambiente_id) !== ambienteId) return false;
     if (estado && estadoDe(p) !== estado) return false;
     if (textoBusqueda) {
       const texto = `${p.nombre} ${p.categoria || ''} ${p.sku || ''}`.toLowerCase();
@@ -70,7 +85,7 @@ function renderTablaProductos(lista) {
     ? lista.map((p) => {
         const estado = badgeEstadoStock(p);
         return `
-          <tr>
+          <tr data-fila="${p.id}">
             <td>
               <div class="celda-producto">
                 <div class="icono-producto">${icono('box', 17)}</div>
@@ -81,16 +96,15 @@ function renderTablaProductos(lista) {
               </div>
             </td>
             <td>${badgeCategoria(p.categoria)}</td>
+            <td>${p.ambiente_nombre || '—'}</td>
             <td>${formatoMoneda(p.costo_unitario)}</td>
             <td>${formatoMoneda(p.precio_venta)}</td>
             <td>${p.stock_actual}</td>
-            <td>${p.stock_minimo}</td>
             <td><span class="badge ${estado.clase}">${estado.texto}</span></td>
             <td>
               <div class="acciones-fila">
+                <button type="button" class="btn-icono" title="Ver detalle" data-detalle="${p.id}">${icono('externalLink', 15)}</button>
                 <button type="button" class="btn-icono" title="Registrar venta" data-vender="${p.id}">${icono('cash', 15)}</button>
-                <button type="button" class="btn-icono" title="Registrar entrada" data-entrada="${p.id}">${icono('entrada', 15)}</button>
-                <button type="button" class="btn-icono" title="Registrar salida (pérdida, ajuste...)" data-salida="${p.id}">${icono('salida', 15)}</button>
                 <button type="button" class="btn-icono" title="Editar" data-editar="${p.id}">${icono('pencil', 15)}</button>
                 <button type="button" class="btn-icono peligro" title="Eliminar" data-eliminar="${p.id}">${icono('trash', 15)}</button>
               </div>
@@ -105,34 +119,17 @@ function renderTablaProductos(lista) {
     abrirModalProducto(p);
   }));
   tbody.querySelectorAll('[data-eliminar]').forEach((btn) => btn.addEventListener('click', () => eliminarProducto(Number(btn.dataset.eliminar))));
-  tbody.querySelectorAll('[data-entrada]').forEach((btn) => btn.addEventListener('click', () => abrirModalMovimiento({ productoId: Number(btn.dataset.entrada), tipo: 'entrada' })));
-  tbody.querySelectorAll('[data-salida]').forEach((btn) => btn.addEventListener('click', () => abrirModalMovimiento({ productoId: Number(btn.dataset.salida), tipo: 'salida' })));
-  tbody.querySelectorAll('[data-vender]').forEach((btn) => btn.addEventListener('click', () => abrirModalVenta({ productoId: Number(btn.dataset.vender) })));
-}
-
-function renderHistorial() {
-  const tbody = document.getElementById('tablaHistorial');
-  const recientes = [...movimientosCache]
-    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha) || b.id - a.id)
-    .slice(0, 30);
-
-  tbody.innerHTML = recientes.length
-    ? recientes.map((m) => `
-        <tr>
-          <td>${new Date(m.fecha).toLocaleString('es-CO')}</td>
-          <td>${m.producto_nombre}</td>
-          <td><span class="badge ${m.tipo === 'entrada' ? 'badge-verde' : 'badge-rojo'}">${m.tipo === 'entrada' ? 'Entrada' : 'Salida'}</span></td>
-          <td>${m.cantidad}</td>
-          <td>${m.motivo || '—'}</td>
-        </tr>
-      `).join('')
-    : '<tr class="tabla-vacio-fila"><td colspan="5">Todavía no hay movimientos de stock.</td></tr>';
+  tbody.querySelectorAll('[data-vender]').forEach((btn) => btn.addEventListener('click', () => abrirModalVenta({ productoId: Number(btn.dataset.vender), onExito: recargar })));
+  tbody.querySelectorAll('[data-detalle]').forEach((btn) => btn.addEventListener('click', () => abrirDetalleProducto(Number(btn.dataset.detalle), { onExito: recargar })));
 }
 
 // ---------- Modal: nuevo / editar producto ----------
 
 function abrirModalProducto(producto = null) {
   const esEdicion = Boolean(producto);
+  const opcionesAmbiente = ambientesCache.map((a) => `<option value="${a.id}" ${producto?.ambiente_id === a.id ? 'selected' : ''}>${a.nombre}</option>`).join('');
+  const opcionesDistribuidor = distribuidoresCache.map((d) => `<option value="${d.id}" ${producto?.distribuidor_id === d.id ? 'selected' : ''}>${d.nombre}</option>`).join('');
+
   const overlay = abrirModal(esEdicion ? 'Editar producto' : 'Nuevo producto', `
     <form id="formProducto">
       <label class="campo">Nombre
@@ -162,6 +159,14 @@ function abrirModalProducto(producto = null) {
           <input name="stock_minimo" type="number" min="0" step="1" value="${producto?.stock_minimo ?? 0}" />
         </label>
       </div>
+      <div class="fila-campos">
+        <label class="campo">Ambiente
+          <select name="ambiente_id"><option value="">— Ninguno —</option>${opcionesAmbiente}</select>
+        </label>
+        <label class="campo">Distribuidor
+          <select name="distribuidor_id"><option value="">— Ninguno —</option>${opcionesDistribuidor}</select>
+        </label>
+      </div>
       <p class="mensaje error" id="mensajeModal"></p>
       <div class="modal-acciones">
         <button type="button" class="btn btn-secundario" id="btnCancelarModal">Cancelar</button>
@@ -181,6 +186,8 @@ function abrirModalProducto(producto = null) {
       costo_unitario: Number(datos.costo_unitario),
       precio_venta: Number(datos.precio_venta),
       stock_minimo: Number(datos.stock_minimo || 0),
+      ambiente_id: datos.ambiente_id ? Number(datos.ambiente_id) : null,
+      distribuidor_id: datos.distribuidor_id ? Number(datos.distribuidor_id) : null,
     };
     if (!esEdicion) cuerpo.stock_actual = Number(datos.stock_actual || 0);
 
@@ -213,131 +220,6 @@ async function eliminarProducto(id) {
   }
 }
 
-// ---------- Modal: registrar movimiento de stock ----------
-
-function abrirModalMovimiento({ productoId, tipo } = {}) {
-  const opciones = productosCache.map((p) => `<option value="${p.id}" ${p.id === productoId ? 'selected' : ''}>${p.nombre} (stock: ${p.stock_actual})</option>`).join('');
-
-  const overlay = abrirModal('Registrar movimiento de stock', `
-    <form id="formMovimiento">
-      <label class="campo">Producto
-        <select name="producto_id" required>${opciones}</select>
-      </label>
-      <div class="fila-campos">
-        <label class="campo">Tipo
-          <select name="tipo" required>
-            <option value="entrada" ${tipo === 'entrada' ? 'selected' : ''}>Entrada</option>
-            <option value="salida" ${tipo === 'salida' ? 'selected' : ''}>Salida</option>
-          </select>
-        </label>
-        <label class="campo">Cantidad
-          <input name="cantidad" type="number" min="1" step="1" required />
-        </label>
-      </div>
-      <label class="campo">Motivo
-        <input name="motivo" placeholder="ej. compra, venta, ajuste" />
-      </label>
-      <p class="mensaje error" id="mensajeModal"></p>
-      <div class="modal-acciones">
-        <button type="button" class="btn btn-secundario" id="btnCancelarModal">Cancelar</button>
-        <button type="submit" class="btn btn-primario">Registrar</button>
-      </div>
-    </form>
-  `);
-
-  overlay.querySelector('#btnCancelarModal').addEventListener('click', cerrarModal);
-  overlay.querySelector('#formMovimiento').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const datos = Object.fromEntries(new FormData(e.target));
-
-    try {
-      await apiPost('/movimientos-inventario', {
-        producto_id: Number(datos.producto_id),
-        tipo: datos.tipo,
-        cantidad: Number(datos.cantidad),
-        motivo: datos.motivo || null,
-      });
-      cerrarModal();
-      mostrarMensaje('Movimiento registrado.', 'exito');
-      await cargarTodo();
-    } catch (err) {
-      overlay.querySelector('#mensajeModal').textContent = err.message;
-    }
-  });
-}
-
-// ---------- Modal: registrar venta (salida de stock + ingreso de dinero) ----------
-
-function abrirModalVenta({ productoId } = {}) {
-  if (productosCache.length === 0) {
-    mostrarMensaje('Primero crea un producto para poder registrar una venta.', 'error');
-    return;
-  }
-
-  const productoInicial = productosCache.find((p) => p.id === productoId) || productosCache[0];
-  const opciones = productosCache.map((p) => `<option value="${p.id}" data-precio="${p.precio_venta}" ${p.id === productoInicial.id ? 'selected' : ''}>${p.nombre} (stock: ${p.stock_actual})</option>`).join('');
-
-  const overlay = abrirModal('Registrar venta', `
-    <form id="formVenta">
-      <label class="campo">Producto
-        <select name="producto_id" id="selectProductoVenta" required>${opciones}</select>
-      </label>
-      <div class="fila-campos">
-        <label class="campo">Cantidad
-          <input name="cantidad" type="number" min="1" step="1" value="1" required />
-        </label>
-        <label class="campo">Precio unitario
-          <input name="precio_unitario" type="number" min="0" step="1" value="${productoInicial.precio_venta}" required />
-        </label>
-      </div>
-      <label class="campo">Nota (opcional)
-        <input name="descripcion" placeholder="ej. venta por Instagram" />
-      </label>
-      <p style="margin: 0 0 0.85rem; font-size: 0.9rem;">Total: <strong id="totalVenta">${formatoMoneda(productoInicial.precio_venta)}</strong></p>
-      <p class="mensaje error" id="mensajeModal"></p>
-      <div class="modal-acciones">
-        <button type="button" class="btn btn-secundario" id="btnCancelarModal">Cancelar</button>
-        <button type="submit" class="btn btn-primario">Registrar venta</button>
-      </div>
-    </form>
-  `);
-
-  const campoCantidad = overlay.querySelector('[name=cantidad]');
-  const campoPrecio = overlay.querySelector('[name=precio_unitario]');
-  const totalEl = overlay.querySelector('#totalVenta');
-
-  const actualizarTotal = () => {
-    const total = Number(campoCantidad.value || 0) * Number(campoPrecio.value || 0);
-    totalEl.textContent = formatoMoneda(total);
-  };
-  campoCantidad.addEventListener('input', actualizarTotal);
-  campoPrecio.addEventListener('input', actualizarTotal);
-  overlay.querySelector('#selectProductoVenta').addEventListener('change', (e) => {
-    campoPrecio.value = e.target.selectedOptions[0].dataset.precio;
-    actualizarTotal();
-  });
-
-  overlay.querySelector('#btnCancelarModal').addEventListener('click', cerrarModal);
-  overlay.querySelector('#formVenta').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const datos = Object.fromEntries(new FormData(e.target));
-
-    try {
-      await apiPost('/ventas', {
-        producto_id: Number(datos.producto_id),
-        cantidad: Number(datos.cantidad),
-        precio_unitario: Number(datos.precio_unitario),
-        descripcion: datos.descripcion || null,
-      });
-      cerrarModal();
-      mostrarMensaje('Venta registrada: se descontó el stock y se registró el ingreso.', 'exito');
-      await cargarTodo();
-    } catch (err) {
-      overlay.querySelector('#mensajeModal').textContent = err.message;
-    }
-  });
-}
-
 // ---------- Query params (accesos rápidos desde el Dashboard) ----------
 
 async function manejarQueryParams() {
@@ -351,10 +233,10 @@ async function manejarQueryParams() {
   } else if (params.has('movimiento')) {
     const tipo = params.get('movimiento');
     const productoId = params.has('producto') ? Number(params.get('producto')) : undefined;
-    abrirModalMovimiento({ tipo: tipo === 'salida' ? 'salida' : 'entrada', productoId });
+    abrirModalMovimiento({ tipo: tipo === 'salida' ? 'salida' : 'entrada', productoId, onExito: recargar });
   } else if (params.has('venta')) {
     const productoId = params.has('producto') ? Number(params.get('producto')) : undefined;
-    abrirModalVenta({ productoId });
+    abrirModalVenta({ productoId, onExito: recargar });
   }
   if (params.toString()) window.history.replaceState({}, '', window.location.pathname);
 }
@@ -362,6 +244,7 @@ async function manejarQueryParams() {
 // ---------- Wiring ----------
 
 document.getElementById('filtroCategoria').addEventListener('change', aplicarFiltros);
+document.getElementById('filtroAmbiente').addEventListener('change', aplicarFiltros);
 document.getElementById('filtroEstado').addEventListener('change', aplicarFiltros);
 window.onBuscarGlobal = debounce((texto) => { textoBusqueda = texto; aplicarFiltros(); }, 150);
 

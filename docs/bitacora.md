@@ -48,3 +48,49 @@
   el ingreso en una sola transacción. La salida de stock "manual" se dejó
   disponible en la tabla de Productos para casos que no son venta (pérdida,
   ajuste).
+- Se cambió el nombre de la app en la interfaz de "Inventario SENA" a
+  **Stokio** (logo, título de pestañas, tarjeta lateral); `docs/` y el
+  README siguen hablando del proyecto SENA porque eso sí es correcto.
+- Se reemplazó el menú hamburguesa + panel lateral en móvil por una barra de
+  navegación inferior flotante (estilo app), con los accesos principales y un
+  botón "Más" para el resto.
+- **Rediseño de marca "Stokio" y ampliación grande de alcance** (mismo día,
+  sesión larga): Charly trajo una guía de diseño completa de la marca Stokio
+  más un mockup con secciones de otro proyecto suyo (inventario de equipos:
+  Ambientes, Préstamos, Usuarios). Se acordó implementar todo excepto
+  Préstamos, reemplazado por **Distribuidores**. Quedó:
+  - Sistema visual reescrito por completo siguiendo la guía: paleta morada
+    `#6D28D9`, tipografía Inter (con degradación a fuentes del sistema si no
+    hay internet), radios/sombras/espaciado de la guía, foco visible en
+    todos los campos.
+  - **Autenticación real**: login con correo/contraseña, sesiones por cookie
+    (`usuarios` + `sesiones`, contraseñas con bcrypt), roles administrador/
+    colaborador. Todo el API (menos login y `/salud`) exige sesión. Esto
+    revierte el "fuera de alcance" que tenía `requisitos.md` sobre
+    autenticación.
+  - Módulos nuevos con CRUD completo: **Ambientes** (ubicaciones del
+    inventario), **Distribuidores** (proveedores) y **Usuarios** (solo
+    administrador; no se puede eliminar la propia cuenta ni quedarse sin
+    ningún administrador).
+  - Productos ahora puede asignarse a un ambiente y a un distribuidor;
+    ninguno de los dos se puede borrar si tiene productos asociados
+    (mismo patrón de protección por llave foránea que ya existía).
+  - Nueva página **Inventario** (`movimientos-stock.html`): historial
+    completo de entradas/salidas/ventas, separado de **Productos**
+    (catálogo), con sus propias tarjetas de resumen y filtros.
+  - **Escáner de código**: botón en la barra superior que abre la cámara
+    (API `BarcodeDetector`, cuando el navegador la soporta) o permite
+    escribir el SKU a mano; encuentra el producto y abre su detalle.
+  - **Panel de detalle de producto** (drawer): specs completas, código
+    interno, línea de tiempo de sus últimos movimientos, y accesos directos
+    para vender/entrada/salida/editar.
+  - Quedó pendiente, a propósito: generar una imagen de QR descargable/
+    imprimible por producto. Hacerlo bien requiere un encoder QR real, y no
+    hubo forma confiable de conseguir uno ya probado sin arriesgar un QR
+    que no escanee de verdad — se prefirió no fingir esa función. Ver
+    `planeacion.md`.
+  - Probado con Playwright de punta a punta: login/logout, bloqueo sin
+    sesión, CRUD de ambientes/distribuidores/usuarios (con sus reglas de
+    negocio: no borrar en uso, no quedarse sin administrador, no auto-
+    eliminarse), producto con ambiente/distribuidor, filtro por ambiente,
+    escáner por código manual, y el menú "Más" en móvil.

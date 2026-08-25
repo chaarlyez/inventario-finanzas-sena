@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Distribuidores — Stokio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="distribuidores" data-search-placeholder="Buscar distribuidor…">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1>Distribuidores</h1>
+        <p class="subtitulo">Proveedores a los que le compras el inventario.</p>
+      </div>
+      <button type="button" class="btn btn-primario" id="btnNuevoDistribuidor"></button>
+    </div>
+
+    <p class="mensaje" id="mensajeGlobal"></p>
+
+    <div class="tabla-contenedor">
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr><th>Distribuidor</th><th>Contacto</th><th>Teléfono</th><th>Correo</th><th>Productos</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tablaDistribuidores"><tr class="tabla-vacio-fila"><td colspan="6">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/distribuidores.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ambientes — Stokio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="ambientes" data-search-placeholder="Buscar ambiente…">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1>Ambientes</h1>
+        <p class="subtitulo">Ubicaciones donde se guarda el inventario (bodega, tienda, etc.).</p>
+      </div>
+      <button type="button" class="btn btn-primario" id="btnNuevoAmbiente"></button>
+    </div>
+
+    <p class="mensaje" id="mensajeGlobal"></p>
+
+    <div class="tabla-contenedor">
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr><th>Ambiente</th><th>Descripción</th><th>Productos</th><th>Stock total</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tablaAmbientes"><tr class="tabla-vacio-fila"><td colspan="5">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/ambientes.js"></script>
+</body>
+</html>

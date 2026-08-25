@@ -11,7 +11,7 @@
     <div class="encabezado-pagina">
       <div>
         <h1>Productos</h1>
-        <p class="subtitulo">Catálogo, stock y movimientos de inventario.</p>
+        <p class="subtitulo">Catálogo de productos: precios, stock, ambiente y distribuidor.</p>
       </div>
       <div style="display:flex; gap:0.6rem;">
         <button type="button" class="btn btn-secundario" id="btnRegistrarMovimiento"></button>
@@ -24,6 +24,9 @@
     <div class="barra-filtros">
       <select id="filtroCategoria">
         <option value="">Todas las categorías</option>
+      </select>
+      <select id="filtroAmbiente">
+        <option value="">Todos los ambientes</option>
       </select>
       <select id="filtroEstado">
         <option value="">Todos los estados</option>
@@ -38,25 +41,11 @@
         <table>
           <thead>
             <tr>
-              <th>Producto</th><th>Categoría</th><th>Costo</th><th>Precio venta</th><th>Stock</th><th>Mínimo</th><th>Estado</th><th>Acciones</th>
+              <th>Producto</th><th>Categoría</th><th>Ambiente</th><th>Costo</th><th>Precio venta</th><th>Stock</th><th>Estado</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tablaProductos"><tr class="tabla-vacio-fila"><td colspan="8">Cargando…</td></tr></tbody>
         </table>
-      </div>
-    </div>
-
-    <div>
-      <div class="panel-cabecera"><h2>Historial de movimientos de stock</h2></div>
-      <div class="tabla-contenedor">
-        <div class="tabla-scroll">
-          <table>
-            <thead>
-              <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th></tr>
-            </thead>
-            <tbody id="tablaHistorial"><tr class="tabla-vacio-fila"><td colspan="5">Cargando…</td></tr></tbody>
-          </table>
-        </div>
       </div>
     </div>
   </main>
