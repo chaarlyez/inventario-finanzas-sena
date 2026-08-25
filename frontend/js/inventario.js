@@ -88,8 +88,9 @@ function renderTablaProductos(lista) {
             <td><span class="badge ${estado.clase}">${estado.texto}</span></td>
             <td>
               <div class="acciones-fila">
+                <button type="button" class="btn-icono" title="Registrar venta" data-vender="${p.id}">${icono('cash', 15)}</button>
                 <button type="button" class="btn-icono" title="Registrar entrada" data-entrada="${p.id}">${icono('entrada', 15)}</button>
-                <button type="button" class="btn-icono" title="Registrar salida" data-salida="${p.id}">${icono('salida', 15)}</button>
+                <button type="button" class="btn-icono" title="Registrar salida (pérdida, ajuste...)" data-salida="${p.id}">${icono('salida', 15)}</button>
                 <button type="button" class="btn-icono" title="Editar" data-editar="${p.id}">${icono('pencil', 15)}</button>
                 <button type="button" class="btn-icono peligro" title="Eliminar" data-eliminar="${p.id}">${icono('trash', 15)}</button>
               </div>
@@ -106,6 +107,7 @@ function renderTablaProductos(lista) {
   tbody.querySelectorAll('[data-eliminar]').forEach((btn) => btn.addEventListener('click', () => eliminarProducto(Number(btn.dataset.eliminar))));
   tbody.querySelectorAll('[data-entrada]').forEach((btn) => btn.addEventListener('click', () => abrirModalMovimiento({ productoId: Number(btn.dataset.entrada), tipo: 'entrada' })));
   tbody.querySelectorAll('[data-salida]').forEach((btn) => btn.addEventListener('click', () => abrirModalMovimiento({ productoId: Number(btn.dataset.salida), tipo: 'salida' })));
+  tbody.querySelectorAll('[data-vender]').forEach((btn) => btn.addEventListener('click', () => abrirModalVenta({ productoId: Number(btn.dataset.vender) })));
 }
 
 function renderHistorial() {
@@ -264,6 +266,78 @@ function abrirModalMovimiento({ productoId, tipo } = {}) {
   });
 }
 
+// ---------- Modal: registrar venta (salida de stock + ingreso de dinero) ----------
+
+function abrirModalVenta({ productoId } = {}) {
+  if (productosCache.length === 0) {
+    mostrarMensaje('Primero crea un producto para poder registrar una venta.', 'error');
+    return;
+  }
+
+  const productoInicial = productosCache.find((p) => p.id === productoId) || productosCache[0];
+  const opciones = productosCache.map((p) => `<option value="${p.id}" data-precio="${p.precio_venta}" ${p.id === productoInicial.id ? 'selected' : ''}>${p.nombre} (stock: ${p.stock_actual})</option>`).join('');
+
+  const overlay = abrirModal('Registrar venta', `
+    <form id="formVenta">
+      <label class="campo">Producto
+        <select name="producto_id" id="selectProductoVenta" required>${opciones}</select>
+      </label>
+      <div class="fila-campos">
+        <label class="campo">Cantidad
+          <input name="cantidad" type="number" min="1" step="1" value="1" required />
+        </label>
+        <label class="campo">Precio unitario
+          <input name="precio_unitario" type="number" min="0" step="1" value="${productoInicial.precio_venta}" required />
+        </label>
+      </div>
+      <label class="campo">Nota (opcional)
+        <input name="descripcion" placeholder="ej. venta por Instagram" />
+      </label>
+      <p style="margin: 0 0 0.85rem; font-size: 0.9rem;">Total: <strong id="totalVenta">${formatoMoneda(productoInicial.precio_venta)}</strong></p>
+      <p class="mensaje error" id="mensajeModal"></p>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-secundario" id="btnCancelarModal">Cancelar</button>
+        <button type="submit" class="btn btn-primario">Registrar venta</button>
+      </div>
+    </form>
+  `);
+
+  const campoCantidad = overlay.querySelector('[name=cantidad]');
+  const campoPrecio = overlay.querySelector('[name=precio_unitario]');
+  const totalEl = overlay.querySelector('#totalVenta');
+
+  const actualizarTotal = () => {
+    const total = Number(campoCantidad.value || 0) * Number(campoPrecio.value || 0);
+    totalEl.textContent = formatoMoneda(total);
+  };
+  campoCantidad.addEventListener('input', actualizarTotal);
+  campoPrecio.addEventListener('input', actualizarTotal);
+  overlay.querySelector('#selectProductoVenta').addEventListener('change', (e) => {
+    campoPrecio.value = e.target.selectedOptions[0].dataset.precio;
+    actualizarTotal();
+  });
+
+  overlay.querySelector('#btnCancelarModal').addEventListener('click', cerrarModal);
+  overlay.querySelector('#formVenta').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(e.target));
+
+    try {
+      await apiPost('/ventas', {
+        producto_id: Number(datos.producto_id),
+        cantidad: Number(datos.cantidad),
+        precio_unitario: Number(datos.precio_unitario),
+        descripcion: datos.descripcion || null,
+      });
+      cerrarModal();
+      mostrarMensaje('Venta registrada: se descontó el stock y se registró el ingreso.', 'exito');
+      await cargarTodo();
+    } catch (err) {
+      overlay.querySelector('#mensajeModal').textContent = err.message;
+    }
+  });
+}
+
 // ---------- Query params (accesos rápidos desde el Dashboard) ----------
 
 async function manejarQueryParams() {
@@ -278,6 +352,9 @@ async function manejarQueryParams() {
     const tipo = params.get('movimiento');
     const productoId = params.has('producto') ? Number(params.get('producto')) : undefined;
     abrirModalMovimiento({ tipo: tipo === 'salida' ? 'salida' : 'entrada', productoId });
+  } else if (params.has('venta')) {
+    const productoId = params.has('producto') ? Number(params.get('producto')) : undefined;
+    abrirModalVenta({ productoId });
   }
   if (params.toString()) window.history.replaceState({}, '', window.location.pathname);
 }

@@ -8,7 +8,7 @@ function pintarIconosStats() {
 
   document.querySelector('.accion-rapida .icono-circulo.morado').innerHTML = icono('plus', 20);
   document.querySelector('.accion-rapida .icono-circulo.azul').innerHTML = icono('entrada', 20);
-  document.querySelector('.accion-rapida .icono-circulo.naranja').innerHTML = icono('salida', 20);
+  document.querySelector('.accion-rapida .icono-circulo.verde').innerHTML = icono('cash', 20);
   document.querySelector('.accion-rapida .icono-circulo.rosado').innerHTML = icono('chart', 20);
 }
 

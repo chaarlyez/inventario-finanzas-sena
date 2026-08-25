@@ -6,6 +6,7 @@ const productosRouter = require('./routes/productos');
 const movimientosInventarioRouter = require('./routes/movimientosInventario');
 const movimientosDineroRouter = require('./routes/movimientosDinero');
 const reportesRouter = require('./routes/reportes');
+const ventasRouter = require('./routes/ventas');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use('/api/productos', productosRouter);
 app.use('/api/movimientos-inventario', movimientosInventarioRouter);
 app.use('/api/movimientos-dinero', movimientosDineroRouter);
 app.use('/api/reportes', reportesRouter);
+app.use('/api/ventas', ventasRouter);
 
 app.get('/api/salud', (req, res) => res.json({ ok: true }));
 

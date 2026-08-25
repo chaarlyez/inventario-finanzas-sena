@@ -58,6 +58,22 @@ Un producto puede tener muchos movimientos de inventario y muchos movimientos de
 | cantidad      | INTEGER | Opcional, unidades relacionadas (ej. unidades vendidas) |
 | fecha         | TEXT    | Fecha del movimiento                                 |
 
+## Registrar una venta
+
+Vender un producto implica dos cosas a la vez: sacar stock **y** registrar el
+ingreso de dinero. Hacerlo como dos pasos sueltos (una salida de inventario
+por un lado, un ingreso de dinero por otro) es fácil de olvidar y deja los
+datos desincronizados. Por eso existe `POST /api/ventas`, que hace ambas
+inserciones en una sola transacción:
+
+1. Inserta un `movimientos_inventario` de tipo `salida` (motivo `venta`) y descuenta `stock_actual` del producto.
+2. Inserta un `movimientos_dinero` de tipo `ingreso`, categoría `venta`, con `producto_id` y `cantidad` asociados.
+
+Si el stock no alcanza, no se inserta nada (falla antes de la transacción).
+El frontend usa este endpoint desde el botón "Registrar venta" (Dashboard y
+tabla de Productos); la salida "manual" de stock (`POST /movimientos-inventario`)
+se deja para casos que no son venta: pérdidas, ajustes de inventario, etc.
+
 ## Cómo se calcula la rentabilidad
 
 Para cada producto:

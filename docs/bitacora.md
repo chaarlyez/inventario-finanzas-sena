@@ -40,3 +40,11 @@
   Proveedores, Usuarios y Configuración que traía el mockup de referencia,
   por estar fuera del alcance definido en `requisitos.md`. Detalle en
   `planeacion.md`.
+- Se detectó que "Registrar salida" no tenía sentido como la acción rápida
+  principal: sacaba stock pero no registraba el ingreso de la venta, así que
+  quedaban desincronizados si no se hacía el paso de dinero aparte. Se
+  reemplazó por **"Registrar venta"**, respaldado por un endpoint nuevo
+  (`POST /api/ventas`, ver `modelo-datos.md`) que descuenta stock y registra
+  el ingreso en una sola transacción. La salida de stock "manual" se dejó
+  disponible en la tabla de Productos para casos que no son venta (pérdida,
+  ajuste).
