@@ -64,6 +64,9 @@ CREATE TABLE IF NOT EXISTS productos (
   stock_minimo INTEGER NOT NULL DEFAULT 0,
   ambiente_id INTEGER REFERENCES ambientes(id),
   distribuidor_id INTEGER REFERENCES distribuidores(id),
+  -- Posición en el catálogo. El orden alfabético no sirve para un catálogo
+  -- por tallas: dejaría L, M, S, XL en lugar de S, M, L, XL.
+  orden INTEGER NOT NULL DEFAULT 0,
   creado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

@@ -656,6 +656,19 @@ El motivo es que la etiqueta se imprime una vez y se queda pegada meses: si el c
 
 Formato del SKU por variante: `CAM-<CORTE>-<COLOR>-<TALLA>`, por ejemplo `CAM-OVE-NEG-L`. Todo en mayúsculas, sin acentos y sin espacios.
 
+### Orden del catálogo
+
+El catálogo no se ordena alfabéticamente: por nombre, las tallas quedarían L, M, S, XL, que no es como se piensa una talla. La tabla `productos` lleva una columna `orden` y el listado va por ella.
+
+La secuencia es corte, luego color, luego talla de menor a mayor:
+
+1. Clásica blanca — S, M, L, XL
+2. Clásica negra — S, M, L, XL
+3. Oversize blanca — S, M, L, XL
+4. Oversize negra — S, M, L, XL
+
+El orden lo define el seed y se reaplica en cada ejecución, también sobre productos que ya existían: cambiarlo ahí basta para que cambie en toda la aplicación. Un producto creado desde la interfaz recibe la última posición, nunca la primera.
+
 ### Generación
 
 El generador vive en `js/qr.js` y no depende de ninguna librería externa: la aplicación funciona sin conexión. Codifica en modo byte con corrección de errores nivel M y elige la versión más pequeña que quepa.

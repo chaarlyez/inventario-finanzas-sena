@@ -25,5 +25,8 @@ if (!tieneColumna('productos', 'ambiente_id')) {
 if (!tieneColumna('productos', 'distribuidor_id')) {
   db.exec('ALTER TABLE productos ADD COLUMN distribuidor_id INTEGER REFERENCES distribuidores(id)');
 }
+if (!tieneColumna('productos', 'orden')) {
+  db.exec('ALTER TABLE productos ADD COLUMN orden INTEGER NOT NULL DEFAULT 0');
+}
 
 module.exports = db;

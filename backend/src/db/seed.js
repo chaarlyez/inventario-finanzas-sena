@@ -57,8 +57,8 @@ if (!yaTieneDistribuidores) {
 // sin borrar la base ni tocar el stock que ya está registrado.
 {
   const insertarProducto = db.prepare(`
-    INSERT INTO productos (nombre, categoria, sku, costo_unitario, precio_venta, stock_actual, stock_minimo, ambiente_id, distribuidor_id)
-    VALUES (@nombre, @categoria, @sku, @costo_unitario, @precio_venta, @stock_actual, @stock_minimo, @ambiente_id, @distribuidor_id)
+    INSERT INTO productos (nombre, categoria, sku, costo_unitario, precio_venta, stock_actual, stock_minimo, ambiente_id, distribuidor_id, orden)
+    VALUES (@nombre, @categoria, @sku, @costo_unitario, @precio_venta, @stock_actual, @stock_minimo, @ambiente_id, @distribuidor_id, @orden)
   `);
 
   // Catálogo por variante: cada combinación de corte, color y talla es un
@@ -67,16 +67,21 @@ if (!yaTieneDistribuidores) {
     { clave: 'CLA', nombre: 'clásica', costo: 30000, precio: 55000 },
     { clave: 'OVE', nombre: 'oversize', costo: 40000, precio: 85000 },
   ];
+  // Blanca antes que negra, y las tallas de menor a mayor. El orden de
+  // estos arreglos es el orden del catálogo: se guarda en la columna
+  // `orden` porque alfabéticamente las tallas quedarían L, M, S, XL.
   const COLORES = [
-    { clave: 'NEG', nombre: 'negra' },
     { clave: 'BLA', nombre: 'blanca' },
+    { clave: 'NEG', nombre: 'negra' },
   ];
   const TALLAS = ['S', 'M', 'L', 'XL'];
 
   const productos = [];
+  let orden = 0;
   for (const corte of CORTES) {
     for (const color of COLORES) {
       for (const talla of TALLAS) {
+        orden += 1;
         productos.push({
           nombre: `Camiseta ${corte.nombre} ${color.nombre} · talla ${talla}`,
           categoria: 'Camisetas',
@@ -89,6 +94,7 @@ if (!yaTieneDistribuidores) {
           stock_minimo: 3,
           ambiente_id: idBodega,
           distribuidor_id: idDistribuidor,
+          orden,
         });
       }
     }
@@ -99,13 +105,24 @@ if (!yaTieneDistribuidores) {
   );
   const faltantes = productos.filter((p) => !existentes.has(p.sku));
 
+  const insertarMuchos = db.transaction((filas) => {
+    for (const fila of filas) insertarProducto.run(fila);
+  });
+
   if (faltantes.length > 0) {
-    const insertarMuchos = db.transaction((filas) => {
-      for (const fila of filas) insertarProducto.run(fila);
-    });
     insertarMuchos(faltantes);
     console.log(`Productos insertados: ${faltantes.length} variante(s) de camiseta.`);
   } else {
     console.log('Las variantes de camiseta ya estaban registradas.');
   }
+
+  // El orden del catálogo se reaplica siempre, también sobre las variantes
+  // que ya existían: así cambiarlo aquí basta para que cambie en la app,
+  // sin tener que borrar y volver a crear productos.
+  const fijarOrden = db.prepare('UPDATE productos SET orden = ? WHERE sku = ?');
+  const reordenar = db.transaction((filas) => {
+    for (const fila of filas) fijarOrden.run(fila.orden, fila.sku);
+  });
+  reordenar(productos);
+  console.log('Orden del catálogo aplicado: clásica blanca, clásica negra, oversize blanca, oversize negra (S a XL).');
 }
