@@ -43,7 +43,7 @@ function construirLayout() {
   sidebar.innerHTML = `
     <div class="logo">
       <span class="logo-icon">${construirIcono('package', 20)}</span>
-      <span class="logo-text">INVENTARIO<b>SENA</b></span>
+      <span class="logo-text">STOKIO</span>
     </div>
     <ul class="nav-lista">
       ${NAV.map((item) => `
@@ -57,7 +57,7 @@ function construirLayout() {
     </ul>
     <div class="sidebar-card">
       <div class="titulo">a lo maldita sea</div>
-      <div class="desc">Proyecto SENA de Charly — inventario y finanzas de la marca.</div>
+      <div class="desc">Inventario y finanzas de la marca, hecho a la medida por Charly.</div>
       <a class="enlace" href="https://github.com/chaarlyez/inventario-finanzas-sena" target="_blank" rel="noopener">
         Ver repositorio ${construirIcono('externalLink', 14)}
       </a>

@@ -82,17 +82,9 @@ button { font-family: inherit; }
 }
 
 .logo-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  font-size: 0.95rem;
-}
-
-.logo-text b {
-  color: var(--purple);
-  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  font-size: 1.15rem;
 }
 
 .nav-lista {
