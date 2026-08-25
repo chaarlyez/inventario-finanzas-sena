@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Inventario y Finanzas</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Inventario &amp; Finanzas</h1>
+    <nav>
+      <a href="index.html" class="activo">Dashboard</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="movimientos.html">Movimientos de dinero</a>
+      <a href="reportes.html">Reportes</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="tarjetas" id="tarjetas">
+      <div class="tarjeta"><div class="etiqueta">Ingresos totales</div><div class="valor" id="ingresos">—</div></div>
+      <div class="tarjeta"><div class="etiqueta">Egresos totales</div><div class="valor" id="egresos">—</div></div>
+      <div class="tarjeta"><div class="etiqueta">Balance</div><div class="valor" id="balance">—</div></div>
+      <div class="tarjeta"><div class="etiqueta">Valor inventario actual</div><div class="valor" id="valorInventario">—</div></div>
+    </div>
+
+    <section>
+      <h2>Productos con stock bajo</h2>
+      <table>
+        <thead>
+          <tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th></tr>
+        </thead>
+        <tbody id="tablaStockBajo"><tr><td colspan="3">Cargando…</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

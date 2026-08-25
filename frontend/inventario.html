@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventario</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Inventario &amp; Finanzas</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="inventario.html" class="activo">Inventario</a>
+      <a href="movimientos.html">Movimientos de dinero</a>
+      <a href="reportes.html">Reportes</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Nuevo producto</h2>
+    <form class="panel" id="formProducto">
+      <label>Nombre <input name="nombre" required /></label>
+      <label>Categoría <input name="categoria" /></label>
+      <label>SKU <input name="sku" /></label>
+      <label>Costo unitario <input name="costo_unitario" type="number" min="0" step="1" required /></label>
+      <label>Precio de venta <input name="precio_venta" type="number" min="0" step="1" required /></label>
+      <label>Stock inicial <input name="stock_actual" type="number" min="0" step="1" value="0" /></label>
+      <label>Stock mínimo <input name="stock_minimo" type="number" min="0" step="1" value="0" /></label>
+      <button type="submit">Crear producto</button>
+    </form>
+    <p class="mensaje" id="mensajeProducto"></p>
+
+    <h2>Registrar entrada / salida de stock</h2>
+    <form class="panel" id="formMovimiento">
+      <label>Producto
+        <select name="producto_id" id="selectProducto" required></select>
+      </label>
+      <label>Tipo
+        <select name="tipo" required>
+          <option value="entrada">Entrada</option>
+          <option value="salida">Salida</option>
+        </select>
+      </label>
+      <label>Cantidad <input name="cantidad" type="number" min="1" step="1" required /></label>
+      <label>Motivo <input name="motivo" placeholder="ej. compra, venta, ajuste" /></label>
+      <button type="submit">Registrar</button>
+    </form>
+    <p class="mensaje" id="mensajeMovimiento"></p>
+
+    <section>
+      <h2>Productos</h2>
+      <table>
+        <thead>
+          <tr><th>Nombre</th><th>Categoría</th><th>SKU</th><th>Costo</th><th>Precio venta</th><th>Stock</th><th>Mínimo</th></tr>
+        </thead>
+        <tbody id="tablaProductos"><tr><td colspan="7">Cargando…</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/inventario.js"></script>
+</body>
+</html>

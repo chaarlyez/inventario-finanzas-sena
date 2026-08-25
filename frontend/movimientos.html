@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movimientos de dinero</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Inventario &amp; Finanzas</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="movimientos.html" class="activo">Movimientos de dinero</a>
+      <a href="reportes.html">Reportes</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Registrar entrada / salida de dinero</h2>
+    <form class="panel" id="formDinero">
+      <label>Tipo
+        <select name="tipo" id="tipoDinero" required>
+          <option value="ingreso">Ingreso</option>
+          <option value="egreso">Egreso</option>
+        </select>
+      </label>
+      <label>Categoría
+        <select name="categoria" id="categoriaDinero" required></select>
+      </label>
+      <label>Monto <input name="monto" type="number" min="0" step="1" required /></label>
+      <label>Producto (opcional)
+        <select name="producto_id" id="selectProductoDinero">
+          <option value="">— Ninguno —</option>
+        </select>
+      </label>
+      <label>Cantidad (si aplica) <input name="cantidad" type="number" min="1" step="1" /></label>
+      <label>Descripción <input name="descripcion" /></label>
+      <button type="submit">Registrar</button>
+    </form>
+    <p class="mensaje" id="mensajeDinero"></p>
+
+    <section>
+      <h2>Historial</h2>
+      <table>
+        <thead>
+          <tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Monto</th><th>Producto</th><th>Descripción</th></tr>
+        </thead>
+        <tbody id="tablaMovimientosDinero"><tr><td colspan="6">Cargando…</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/movimientos.js"></script>
+</body>
+</html>

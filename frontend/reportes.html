@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reportes de rentabilidad</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Inventario &amp; Finanzas</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="inventario.html">Inventario</a>
+      <a href="movimientos.html">Movimientos de dinero</a>
+      <a href="reportes.html" class="activo">Reportes</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Rentabilidad por producto</h2>
+    <table>
+      <thead>
+        <tr><th>Producto</th><th>Unidades vendidas</th><th>Ingresos</th><th>Costo de lo vendido</th><th>Utilidad</th><th>Margen</th></tr>
+      </thead>
+      <tbody id="tablaRentabilidad"><tr><td colspan="6">Cargando…</td></tr></tbody>
+    </table>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/reportes.js"></script>
+</body>
+</html>
