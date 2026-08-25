@@ -52,25 +52,60 @@ if (!yaTieneDistribuidores) {
 }
 
 // ---------- Productos ----------
-const yaTieneProductos = db.prepare('SELECT COUNT(*) AS n FROM productos').get().n > 0;
-
-if (!yaTieneProductos) {
+// A diferencia del resto, esto no es todo-o-nada: inserta las variantes
+// que falten y respeta las que ya existan, para poder ampliar el catálogo
+// sin borrar la base ni tocar el stock que ya está registrado.
+{
   const insertarProducto = db.prepare(`
     INSERT INTO productos (nombre, categoria, sku, costo_unitario, precio_venta, stock_actual, stock_minimo, ambiente_id, distribuidor_id)
     VALUES (@nombre, @categoria, @sku, @costo_unitario, @precio_venta, @stock_actual, @stock_minimo, @ambiente_id, @distribuidor_id)
   `);
 
-  const productos = [
-    { nombre: 'Camiseta clásica', categoria: 'Camisetas', sku: 'CAM-CLA-001', costo_unitario: 30000, precio_venta: 55000, stock_actual: 20, stock_minimo: 5, ambiente_id: idBodega, distribuidor_id: idDistribuidor },
-    { nombre: 'Camiseta oversize', categoria: 'Camisetas', sku: 'CAM-OVE-001', costo_unitario: 40000, precio_venta: 85000, stock_actual: 15, stock_minimo: 5, ambiente_id: idBodega, distribuidor_id: idDistribuidor },
+  // Catálogo por variante: cada combinación de corte, color y talla es un
+  // producto propio, porque cada una tiene su propio stock y su propio QR.
+  const CORTES = [
+    { clave: 'CLA', nombre: 'clásica', costo: 30000, precio: 55000 },
+    { clave: 'OVE', nombre: 'oversize', costo: 40000, precio: 85000 },
   ];
+  const COLORES = [
+    { clave: 'NEG', nombre: 'negra' },
+    { clave: 'BLA', nombre: 'blanca' },
+  ];
+  const TALLAS = ['S', 'M', 'L', 'XL'];
 
-  const insertarMuchos = db.transaction((filas) => {
-    for (const fila of filas) insertarProducto.run(fila);
-  });
+  const productos = [];
+  for (const corte of CORTES) {
+    for (const color of COLORES) {
+      for (const talla of TALLAS) {
+        productos.push({
+          nombre: `Camiseta ${corte.nombre} ${color.nombre} · talla ${talla}`,
+          categoria: 'Camisetas',
+          // El SKU es lo que va dentro del QR: corto, legible y sin
+          // acentos, para poder teclearlo si la cámara falla.
+          sku: `CAM-${corte.clave}-${color.clave}-${talla}`,
+          costo_unitario: corte.costo,
+          precio_venta: corte.precio,
+          stock_actual: 0,
+          stock_minimo: 3,
+          ambiente_id: idBodega,
+          distribuidor_id: idDistribuidor,
+        });
+      }
+    }
+  }
 
-  insertarMuchos(productos);
-  console.log('Productos de ejemplo insertados.');
-} else {
-  console.log('Ya hay productos, no se insertó nada.');
+  const existentes = new Set(
+    db.prepare('SELECT sku FROM productos WHERE sku IS NOT NULL').all().map((f) => f.sku),
+  );
+  const faltantes = productos.filter((p) => !existentes.has(p.sku));
+
+  if (faltantes.length > 0) {
+    const insertarMuchos = db.transaction((filas) => {
+      for (const fila of filas) insertarProducto.run(fila);
+    });
+    insertarMuchos(faltantes);
+    console.log(`Productos insertados: ${faltantes.length} variante(s) de camiseta.`);
+  } else {
+    console.log('Las variantes de camiseta ya estaban registradas.');
+  }
 }

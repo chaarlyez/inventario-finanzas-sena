@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
+  <title>Etiquetas QR — Stokio</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/tema.js"></script>
+</head>
+<body data-page="etiquetas">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1>Etiquetas QR</h1>
+        <p class="subtitulo">Imprime una etiqueta por producto. Al escanearla se abre la entrada de inventario.</p>
+      </div>
+      <div class="acciones-encabezado">
+        <button type="button" class="btn btn-secundario" id="btnSeleccionarTodo">
+          <span class="icono-btn" data-icono="check"></span>
+          Seleccionar todo
+        </button>
+        <button type="button" class="btn btn-primario" id="btnImprimir">
+          <span class="icono-btn" data-icono="impresora"></span>
+          Imprimir
+        </button>
+      </div>
+    </div>
+
+    <div class="barra-filtros sin-imprimir">
+      <label class="campo campo-linea">Categoría
+        <select id="filtroCategoria">
+          <option value="">Todas</option>
+        </select>
+      </label>
+      <label class="campo campo-linea">Tamaño de etiqueta
+        <select id="tamanoEtiqueta">
+          <option value="mediana">Mediana — 12 por hoja</option>
+          <option value="pequena">Pequeña — 24 por hoja</option>
+          <option value="grande">Grande — 6 por hoja</option>
+        </select>
+      </label>
+      <label class="campo campo-linea casilla-precio">
+        <span>Mostrar precio</span>
+        <input type="checkbox" id="mostrarPrecio" checked />
+      </label>
+    </div>
+
+    <p class="mensaje" id="resumenSeleccion"></p>
+
+    <div class="hoja-etiquetas" id="hojaEtiquetas"></div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/qr.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/etiquetas.js"></script>
+</body>
+</html>

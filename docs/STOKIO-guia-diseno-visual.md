@@ -643,3 +643,37 @@ Los gráficos son SVG generado y llevan el color escrito en el atributo, así qu
 - El panel de marca del login es morado oscuro en ambos temas, así que su texto usa claros fijos y no tokens que se invierten.
 
 ---
+
+---
+
+## 21. Etiquetas QR y entrada por escaneo
+
+### Qué lleva el código
+
+El QR contiene **únicamente el SKU** del producto, nada más. No una URL, no un JSON con los datos.
+
+El motivo es que la etiqueta se imprime una vez y se queda pegada meses: si el código llevara el precio o el nombre, quedaría desactualizado en cuanto cambie cualquiera de los dos. Con el SKU dentro, la aplicación busca los datos frescos en el momento de escanear, y además el código se puede teclear a mano si la cámara falla.
+
+Formato del SKU por variante: `CAM-<CORTE>-<COLOR>-<TALLA>`, por ejemplo `CAM-OVE-NEG-L`. Todo en mayúsculas, sin acentos y sin espacios.
+
+### Generación
+
+El generador vive en `js/qr.js` y no depende de ninguna librería externa: la aplicación funciona sin conexión. Codifica en modo byte con corrección de errores nivel M y elige la versión más pequeña que quepa.
+
+- Margen obligatorio de 4 módulos alrededor. Sin él muchos lectores no encuentran el código.
+- Se dibuja como un único `path` de SVG, no un `rect` por módulo.
+- **El QR siempre es negro sobre blanco, también en tema oscuro.** Un código claro sobre fondo oscuro no lo lee ningún lector.
+
+### La etiqueta
+
+Cada etiqueta lleva, en este orden: QR, nombre del producto, SKU y precio (este último se puede ocultar). Tres tamaños: 24, 12 o 6 por hoja.
+
+Al imprimir desaparecen barra lateral, topbar, encabezado y filtros. Las etiquetas no seleccionadas no se imprimen, y ninguna se parte entre dos páginas.
+
+### Entrada por escaneo
+
+Escanear una etiqueta **no** abre el detalle del producto: abre `Entrada de inventario`, que es lo que se necesita al recibir mercancía.
+
+- Todos los datos del producto se muestran en solo lectura: nombre, código, categoría, distribuidor, ambiente, precio, costo, stock mínimo y stock actual.
+- El único dato editable es **las unidades que entran**, más un motivo opcional. No se pueden tocar precios ni nombres desde aquí.
+- Tras guardar, el modal no se cierra: actualiza el stock a la vista, confirma y deja el campo en 1. Recibir mercancía son varias cajas seguidas, no una.

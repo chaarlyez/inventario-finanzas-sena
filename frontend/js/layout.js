@@ -56,6 +56,7 @@ function construirIcono(nombre, tam = 20) {
 const NAV = [
   { key: 'dashboard', label: 'Resumen', labelCorto: 'Inicio', href: 'index.html', icon: 'home' },
   { key: 'productos', label: 'Productos', href: 'inventario.html', icon: 'box' },
+  { key: 'etiquetas', label: 'Etiquetas QR', labelCorto: 'Etiquetas', href: 'etiquetas.html', icon: 'qrCode' },
   { key: 'inventario', label: 'Inventario', labelCorto: 'Stock', href: 'movimientos-stock.html', icon: 'arrowLeftRight' },
   { key: 'ambientes', label: 'Ambientes', href: 'ambientes.html', icon: 'mapPin' },
   { key: 'distribuidores', label: 'Distribuidores', labelCorto: 'Distrib.', href: 'distribuidores.html', icon: 'truck' },
@@ -507,6 +508,101 @@ function _tiempoRelativo(fechaIso) {
   return _formatoFechaCorta(fechaIso);
 }
 
+// ---------- Entrada rápida tras escanear ----------
+
+// Lo que se ve al escanear una etiqueta: la ficha del producto en solo
+// lectura y un único campo editable, las unidades que entran. La idea es
+// poder recibir mercancía sin riesgo de tocar precios ni nombres.
+function _abrirEntradaRapida(producto) {
+  const dato = (etiqueta, valor) => `
+    <div class="dato-ficha">
+      <dt>${etiqueta}</dt>
+      <dd>${valor ?? '—'}</dd>
+    </div>`;
+
+  const estado = _badgeEstadoStock(producto);
+
+  const overlay = _abrirModal('Entrada de inventario', `
+    <div class="ficha-escaneo">
+      <div class="ficha-cabecera">
+        <div>
+          <div class="ficha-nombre">${producto.nombre}</div>
+          <div class="ficha-sku">${producto.sku || 'Sin código'}</div>
+        </div>
+        <span class="badge ${estado.clase}">${estado.texto}</span>
+      </div>
+
+      <dl class="ficha-datos">
+        ${dato('Categoría', producto.categoria)}
+        ${dato('Distribuidor', producto.distribuidor_nombre)}
+        ${dato('Ambiente', producto.ambiente_nombre)}
+        ${dato('Precio de venta', formatoMoneda(producto.precio_venta))}
+        ${dato('Costo unitario', formatoMoneda(producto.costo_unitario))}
+        ${dato('Stock mínimo', producto.stock_minimo)}
+      </dl>
+
+      <div class="ficha-stock">
+        <span class="etiqueta">Stock actual</span>
+        <span class="cifra" id="stockActualFicha">${_formatoNumero(producto.stock_actual)}</span>
+      </div>
+    </div>
+
+    <form id="formEntradaRapida">
+      <label class="campo">Unidades que entran
+        <input name="cantidad" type="number" min="1" step="1" value="1" required autofocus inputmode="numeric" />
+      </label>
+      <label class="campo">Motivo <span class="opcional">(opcional)</span>
+        <input name="motivo" placeholder="ej. compra a distribuidor" />
+      </label>
+      <p class="mensaje error" id="mensajeEntrada"></p>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-secundario" id="btnCerrarEntrada">Cerrar</button>
+        <button type="submit" class="btn btn-primario">Agregar al inventario</button>
+      </div>
+    </form>
+  `, { claseModal: 'modal-escaneo' });
+
+  overlay.querySelector('#btnCerrarEntrada').addEventListener('click', _cerrarModal);
+
+  overlay.querySelector('#formEntradaRapida').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(e.target));
+    const cantidad = Number(datos.cantidad);
+    const mensaje = overlay.querySelector('#mensajeEntrada');
+    const boton = e.target.querySelector('button[type="submit"]');
+
+    if (!Number.isInteger(cantidad) || cantidad < 1) {
+      mensaje.textContent = 'Escribe un número entero de una unidad o más.';
+      return;
+    }
+
+    boton.disabled = true;
+    try {
+      await apiPost('/movimientos-inventario', {
+        producto_id: producto.id,
+        tipo: 'entrada',
+        cantidad,
+        motivo: datos.motivo || 'entrada por escaneo',
+      });
+
+      // Se confirma en el sitio y se deja listo para el siguiente lote,
+      // que es como se recibe mercancía: varias cajas seguidas.
+      producto.stock_actual += cantidad;
+      overlay.querySelector('#stockActualFicha').textContent = _formatoNumero(producto.stock_actual);
+      mensaje.className = 'mensaje exito';
+      mensaje.textContent = `Se agregaron ${_formatoNumero(cantidad)} unidad${cantidad === 1 ? '' : 'es'}. Stock actualizado.`;
+      e.target.querySelector('[name="cantidad"]').value = 1;
+      boton.disabled = false;
+
+      if (typeof window.alActualizarInventario === 'function') window.alActualizarInventario();
+    } catch (err) {
+      mensaje.className = 'mensaje error';
+      mensaje.textContent = err.message;
+      boton.disabled = false;
+    }
+  });
+}
+
 // ---------- Datos del negocio ----------
 
 const CAMPOS_NEGOCIO = [
@@ -856,7 +952,7 @@ async function _abrirEscanerQr() {
     ` : '<p class="mensaje error">Tu navegador no soporta escaneo por cámara. Ingresa el código manualmente.</p>'}
     <form id="formCodigoManual" class="escaner-manual">
       <label class="campo">Código del producto (SKU)
-        <input name="codigo" placeholder="ej. CAM-CLA-001" autofocus />
+        <input name="codigo" placeholder="ej. CAM-CLA-NEG-M" autofocus />
       </label>
       <button type="submit" class="btn btn-primario">Buscar</button>
     </form>
@@ -874,7 +970,7 @@ async function _abrirEscanerQr() {
     }
     _detenerCamaraEscaner();
     _cerrarModal();
-    _abrirDetalleProducto(encontrado.id);
+    _abrirEntradaRapida(encontrado);
   };
 
   overlay.querySelector('#formCodigoManual').addEventListener('submit', (e) => {
@@ -944,6 +1040,7 @@ window.Layout = {
   abrirModalVenta: _abrirModalVenta,
   abrirDetalleProducto: _abrirDetalleProducto,
   abrirEscanerQr: _abrirEscanerQr,
+  abrirEntradaRapida: _abrirEntradaRapida,
   abrirModalNegocio: _abrirModalNegocio,
   abrirModalApariencia: _abrirModalApariencia,
   alCambiarTema: _alCambiarTema,
