@@ -45,11 +45,21 @@ Con `NODE_ENV=production` la aplicación además:
 
 ## Despliegue
 
+Todos los comandos de esta sección se escriben en **PowerShell**, desde la carpeta raíz del repositorio:
+
+```powershell
+cd "C:\Users\Charly\Desktop\Sena Karol\inventario-finanzas-sena-1"
+```
+
+Es importante estar ahí: `fly launch` y `fly deploy` buscan `fly.toml` y `Dockerfile` en la carpeta actual.
+
 ### 1. Instala flyctl
 
-```bash
-winget install --id Fly.Flyctl
+```powershell
+winget install --id Fly-io.flyctl
 ```
+
+El identificador lleva guion, no punto: `Fly-io.flyctl`. Tras instalarlo hay que **abrir una terminal nueva**, porque el comando se añade al PATH y las terminales ya abiertas no lo ven.
 
 Si winget falla por permisos, descarga el binario desde [fly.io/docs/flyctl/install](https://fly.io/docs/flyctl/install/).
 
