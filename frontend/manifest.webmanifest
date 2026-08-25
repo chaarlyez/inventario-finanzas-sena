@@ -1,0 +1,46 @@
+{
+  "name": "Stokio — Inventario",
+  "short_name": "Stokio",
+  "description": "Controla, organiza y conoce tu inventario.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#6d28d9",
+  "icons": [
+    {
+      "src": "assets/stokio/pwa/icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/stokio/pwa/icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/stokio/pwa/icono-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Escanear código",
+      "short_name": "Escanear",
+      "url": "./index.html?escanear=1",
+      "icons": [{ "src": "assets/stokio/pwa/icono-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Etiquetas QR",
+      "short_name": "Etiquetas",
+      "url": "./etiquetas.html"
+    }
+  ]
+}

@@ -938,36 +938,66 @@ async function _abrirDetalleProducto(productoId, { onExito } = {}) {
 
 // ---------- Escáner de código (cámara con BarcodeDetector, o manual) ----------
 
+// Carga jsQR solo cuando hace falta. Son 256 KB: los navegadores que
+// traen BarcodeDetector (Chrome, Android) no tienen por qué descargarlos.
+let _promesaJsQr = null;
+
+function _cargarJsQr() {
+  if (window.jsQR) return Promise.resolve(window.jsQR);
+  if (_promesaJsQr) return _promesaJsQr;
+  _promesaJsQr = new Promise((resolver, rechazar) => {
+    const script = document.createElement('script');
+    script.src = 'js/vendor/jsqr.js';
+    script.onload = () => resolver(window.jsQR);
+    script.onerror = () => rechazar(new Error('No se pudo cargar el lector de códigos.'));
+    document.head.appendChild(script);
+  });
+  return _promesaJsQr;
+}
+
 async function _abrirEscanerQr() {
-  const soportaDeteccion = 'BarcodeDetector' in window;
+  // La cámara solo está disponible en HTTPS o en localhost. Sin eso el
+  // navegador ni siquiera expone mediaDevices, y conviene decirlo claro en
+  // vez de dejar que falle sin explicación.
+  const contextoSeguro = window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
 
   const overlay = _abrirModal('Escanear código', `
     <p class="mensaje">Ubica el código del producto dentro del recuadro, o ingrésalo manualmente.</p>
-    ${soportaDeteccion ? `
+    ${contextoSeguro ? `
       <div class="escaner-camara">
         <video id="videoEscaner" autoplay playsinline muted></video>
         <div class="escaner-marco"></div>
       </div>
-      <p class="mensaje" id="mensajeCamara"></p>
-    ` : '<p class="mensaje error">Tu navegador no soporta escaneo por cámara. Ingresa el código manualmente.</p>'}
+      <p class="mensaje" id="mensajeCamara">Preparando la cámara…</p>
+    ` : `
+      <p class="mensaje error">
+        La cámara necesita una conexión segura (HTTPS). Estás entrando por una dirección
+        sin cifrar, así que solo puedes ingresar el código a mano.
+      </p>
+    `}
     <form id="formCodigoManual" class="escaner-manual">
       <label class="campo">Código del producto (SKU)
-        <input name="codigo" placeholder="ej. CAM-CLA-NEG-M" autofocus />
+        <input name="codigo" placeholder="ej. CAM-CLA-NEG-M" autocomplete="off" />
       </label>
       <button type="submit" class="btn btn-primario">Buscar</button>
     </form>
     <p class="mensaje error" id="mensajeEscaner"></p>
   `, { onClose: () => _detenerCamaraEscaner() });
 
+  let yaEncontrado = false;
+
   const buscarPorCodigo = async (codigo) => {
-    const texto = codigo.trim().toLowerCase();
+    if (yaEncontrado) return;
+    const texto = String(codigo || '').trim().toLowerCase();
     if (!texto) return;
     const productos = await apiGet('/productos');
     const encontrado = productos.find((p) => (p.sku || '').toLowerCase() === texto);
     if (!encontrado) {
-      overlay.querySelector('#mensajeEscaner').textContent = `No se encontró ningún producto con el código "${codigo}".`;
+      const aviso = overlay.querySelector('#mensajeEscaner');
+      if (aviso) aviso.textContent = `No se encontró ningún producto con el código "${codigo}".`;
       return;
     }
+    yaEncontrado = true;
     _detenerCamaraEscaner();
     _cerrarModal();
     _abrirEntradaRapida(encontrado);
@@ -978,31 +1008,80 @@ async function _abrirEscanerQr() {
     buscarPorCodigo(new FormData(e.target).get('codigo'));
   });
 
-  if (soportaDeteccion) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      _streamCamaraActivo = stream;
-      const video = overlay.querySelector('#videoEscaner');
-      video.srcObject = stream;
+  if (!contextoSeguro) return;
+
+  const avisoCamara = overlay.querySelector('#mensajeCamara');
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false,
+    });
+    _streamCamaraActivo = stream;
+
+    const video = overlay.querySelector('#videoEscaner');
+    if (!video) { _detenerCamaraEscaner(); return; }
+    video.srcObject = stream;
+    // iOS exige llamar a play() explícitamente; sin esto el vídeo se queda
+    // en negro aunque el permiso esté concedido.
+    await video.play().catch(() => {});
+
+    // Ruta rápida: detector nativo del navegador (Chrome, Android).
+    if ('BarcodeDetector' in window) {
       const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+      if (avisoCamara) avisoCamara.textContent = 'Apunta al código.';
 
       const bucle = async () => {
-        if (!_streamCamaraActivo) return;
+        if (!_streamCamaraActivo || yaEncontrado) return;
         try {
           const codigos = await detector.detect(video);
-          if (codigos.length > 0) {
-            buscarPorCodigo(codigos[0].rawValue);
-            return;
-          }
+          if (codigos.length > 0) { buscarPorCodigo(codigos[0].rawValue); return; }
         } catch {
-          // frame no decodificable todavía, seguimos intentando
+          // Cuadro no decodificable todavía: se sigue intentando.
         }
         _rafEscaner = requestAnimationFrame(bucle);
       };
       _rafEscaner = requestAnimationFrame(bucle);
-    } catch {
-      const mensajeCamara = overlay.querySelector('#mensajeCamara');
-      if (mensajeCamara) mensajeCamara.textContent = 'No se pudo acceder a la cámara. Usa el código manual.';
+      return;
+    }
+
+    // Respaldo: decodificar por software. Es la ruta del iPhone, porque
+    // Safari no implementa BarcodeDetector.
+    if (avisoCamara) avisoCamara.textContent = 'Preparando el lector…';
+    const jsQR = await _cargarJsQr();
+    if (avisoCamara) avisoCamara.textContent = 'Apunta al código.';
+
+    const lienzo = document.createElement('canvas');
+    const ctx = lienzo.getContext('2d', { willReadFrequently: true });
+
+    const bucle = () => {
+      if (!_streamCamaraActivo || yaEncontrado) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        // Se analiza a un ancho máximo de 480 px. Un cuadro de cámara
+        // completo satura el hilo principal y la vista se congela.
+        const escala = Math.min(1, 480 / (video.videoWidth || 480));
+        lienzo.width = Math.round(video.videoWidth * escala);
+        lienzo.height = Math.round(video.videoHeight * escala);
+
+        if (lienzo.width && lienzo.height) {
+          ctx.drawImage(video, 0, 0, lienzo.width, lienzo.height);
+          const imagen = ctx.getImageData(0, 0, lienzo.width, lienzo.height);
+          const resultado = jsQR(imagen.data, imagen.width, imagen.height, {
+            inversionAttempts: 'dontInvert',
+          });
+          if (resultado?.data) { buscarPorCodigo(resultado.data); return; }
+        }
+      }
+      _rafEscaner = requestAnimationFrame(bucle);
+    };
+    _rafEscaner = requestAnimationFrame(bucle);
+  } catch (err) {
+    if (avisoCamara) {
+      avisoCamara.className = 'mensaje error';
+      avisoCamara.textContent = err?.name === 'NotAllowedError'
+        ? 'No diste permiso para usar la cámara. Puedes ingresar el código a mano.'
+        : 'No se pudo acceder a la cámara. Ingresa el código a mano.';
     }
   }
 }
