@@ -69,7 +69,26 @@ Si winget falla por permisos, descarga el binario desde [fly.io/docs/flyctl/inst
 fly auth signup
 ```
 
-Si ya tienes cuenta, `fly auth login`. Fly pide una tarjeta para verificar identidad, incluso dentro del margen gratuito.
+Si ya tienes cuenta, `fly auth login`.
+
+**Fly exige una tarjeta antes de crear la aplicación.** No es opcional y no hay plan gratuito de cómputo: toda organizacion necesita un método de pago registrado. Sin ese paso, `fly launch` se detiene y `fly volumes create` falla despues con `app not found`, porque la aplicacion nunca llegó a crearse.
+
+### Cuánto cuesta
+
+Precios consultados en agosto de 2026 en [fly.io/docs/about/pricing](https://fly.io/docs/about/pricing/):
+
+| Concepto | Precio | En esta configuración |
+|---|---|---|
+| Máquina `shared-cpu-1x`, 512 MB | US$0,0046/hora — US$3,32/mes | Una máquina |
+| Disco persistente | US$0,15 por GB/mes | 1 GB → US$0,15 |
+| Tráfico de salida (Suramérica) | US$0,04 por GB | Céntimos: la aplicación mueve texto |
+
+**Total aproximado: US$3,50 al mes.**
+
+Dos formas de bajarlo, ambas con contrapartida:
+
+- `auto_stop_machines = true` en `fly.toml` hace que solo se pague por las horas encendida. Con una tienda de ocho horas diarias baja a cerca de un dólar al mes, a cambio de unos segundos de espera en el primer acceso tras un rato de inactividad.
+- Bajar la memoria a 256 MB abarata la maquina. La aplicación consume poco.
 
 ### 3. Crea la aplicación
 

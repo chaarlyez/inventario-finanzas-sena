@@ -690,3 +690,37 @@ Escanear una etiqueta **no** abre el detalle del producto: abre `Entrada de inve
 - Todos los datos del producto se muestran en solo lectura: nombre, código, categoría, distribuidor, ambiente, precio, costo, stock mínimo y stock actual.
 - El único dato editable es **las unidades que entran**, más un motivo opcional. No se pueden tocar precios ni nombres desde aquí.
 - Tras guardar, el modal no se cierra: actualiza el stock a la vista, confirma y deja el campo en 1. Recibir mercancía son varias cajas seguidas, no una.
+
+---
+
+## 22. Aplicación instalable y escaneo en cualquier navegador
+
+### Escaneo
+
+El lector tiene dos caminos, y elige solo:
+
+1. **`BarcodeDetector`**, si el navegador lo trae. Es nativo y más rápido. Existe en Chrome y Android.
+2. **jsQR**, decodificando por software. Es el camino del iPhone, porque Safari no implementa `BarcodeDetector`.
+
+jsQR vive en `frontend/js/vendor/` y no en un CDN, porque la aplicación debe funcionar sin conexión. Son 256 KB y **solo se descargan cuando hacen falta**: quien tiene detector nativo no los pide nunca.
+
+Tres cosas que no se pueden quitar sin romper el iPhone:
+
+- Los cuadros se analizan a **480 px de ancho como máximo**. Con la imagen completa de la cámara el hilo principal se satura y la vista se congela.
+- Hay que llamar a `video.play()` explícitamente. iOS lo exige: sin eso el vídeo se queda en negro aunque el permiso esté concedido.
+- La cámara necesita **contexto seguro**: HTTPS o localhost. Por HTTP plano el navegador ni siquiera expone `mediaDevices`. Cuando falta, se explica el motivo en lugar de fallar en silencio.
+
+### Instalación
+
+`manifest.webmanifest` define nombre, íconos, color de marca y arranque a pantalla completa. Los íconos salen del isotipo, e incluyen uno **enmascarable con margen**, porque Android los recorta en círculo o rombo y un ícono sin margen queda mutilado.
+
+Las etiquetas `apple-*` van aparte del manifiesto: Safari no lo lee para decidir el ícono ni si la aplicación abre a pantalla completa.
+
+En Android el navegador ofrece instalar. **En iPhone no hay botón**: se instala a mano desde Compartir › Añadir a pantalla de inicio, y la interfaz debe poder explicarlo en vez de ofrecer un botón que no haría nada.
+
+### Qué se cachea y qué no
+
+El service worker guarda **solo el armazón**: HTML, CSS, JavaScript e íconos. Va primero a la red y deja el caché como respaldo, para que un despliegue nuevo se vea enseguida.
+
+**Las respuestas del API nunca se guardan.** Mostrar una cifra de stock vieja llevaría a vender algo que ya no hay, y eso es peor que no mostrar nada. Es una regla, no una optimización pendiente.
+
