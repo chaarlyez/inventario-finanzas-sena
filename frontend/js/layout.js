@@ -35,7 +35,19 @@ const ICONOS = {
   impresora: '<path d="M6 9V4h12v5M6 18H4V10h16v8h-2M7 15h10v5H7z"/>',
   configuracion: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06-2.2 2.2-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V20.4h-3.1v-.1A1.7 1.7 0 0 0 10.5 18.7a1.7 1.7 0 0 0-1.87.34l-.06.06-2.2-2.2.06-.06A1.7 1.7 0 0 0 6.77 15a1.7 1.7 0 0 0-1.57-1H5.1v-3.1h.1A1.7 1.7 0 0 0 6.77 9.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06 2.2-2.2.06.06a1.7 1.7 0 0 0 1.87.34 1.7 1.7 0 0 0 1.03-1.56V4.5h3.1v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06 2.2 2.2-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.57 1h.1V14h-.1A1.7 1.7 0 0 0 19.4 15Z"/>',
   chevronDown: '<path d="m6 9 6 6 6-6"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/>',
+  tienda: '<path d="M4 9h16v11H4z"/><path d="M3 9 5 4h14l2 5"/><path d="M9 20v-6h6v6"/>',
+  sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  luna: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/>',
+  monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8m-4-4v4"/>',
 };
+
+// Lee un token de color del tema activo. Los graficos no pueden llevar
+// colores fijos: el tema oscuro usa pasos propios, no una inversion.
+function _color(token, respaldo = '#6d28d9') {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+  return v || respaldo;
+}
 
 function construirIcono(nombre, tam = 20) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONOS[nombre] || ''}</svg>`;
@@ -44,6 +56,7 @@ function construirIcono(nombre, tam = 20) {
 const NAV = [
   { key: 'dashboard', label: 'Resumen', labelCorto: 'Inicio', href: 'index.html', icon: 'home' },
   { key: 'productos', label: 'Productos', href: 'inventario.html', icon: 'box' },
+  { key: 'etiquetas', label: 'Etiquetas QR', labelCorto: 'Etiquetas', href: 'etiquetas.html', icon: 'qrCode' },
   { key: 'inventario', label: 'Inventario', labelCorto: 'Stock', href: 'movimientos-stock.html', icon: 'arrowLeftRight' },
   { key: 'ambientes', label: 'Ambientes', href: 'ambientes.html', icon: 'mapPin' },
   { key: 'distribuidores', label: 'Distribuidores', labelCorto: 'Distrib.', href: 'distribuidores.html', icon: 'truck' },
@@ -64,6 +77,7 @@ function construirLayout() {
       <img class="logo-icon" src="assets/stokio/isotipo.svg" alt="" width="30" height="34" />
       <span class="logo-text">STOKIO</span>
     </div>
+    <div class="nombre-negocio" id="nombreNegocio" hidden></div>
     <ul class="nav-lista">
       ${NAV.map((item) => `
         <li data-solo-admin="${item.soloAdmin ? '1' : ''}" ${item.soloAdmin ? 'hidden' : ''}>
@@ -84,7 +98,10 @@ function construirLayout() {
         ${construirIcono('chevronDown', 16)}
       </button>
       <div class="usuario-menu" id="menuUsuario" hidden>
-        <button type="button" id="botonCerrarSesion">${construirIcono('logout', 16)} Cerrar sesión</button>
+        <button type="button" id="botonNegocio">${construirIcono('tienda', 16)} Datos del negocio</button>
+        <button type="button" id="botonApariencia">${construirIcono('sol', 16)} Apariencia</button>
+        <div class="usuario-menu-sep"></div>
+        <button type="button" class="peligro" id="botonCerrarSesion">${construirIcono('logout', 16)} Cerrar sesión</button>
       </div>
     </div>
   `;
@@ -145,6 +162,14 @@ function construirLayout() {
     menuUsuario.hidden = !menuUsuario.hidden;
   });
   document.addEventListener('click', () => { menuUsuario.hidden = true; });
+  document.getElementById('botonNegocio').addEventListener('click', () => {
+    menuUsuario.hidden = true;
+    _abrirModalNegocio();
+  });
+  document.getElementById('botonApariencia').addEventListener('click', () => {
+    menuUsuario.hidden = true;
+    _abrirModalApariencia();
+  });
   document.getElementById('botonCerrarSesion').addEventListener('click', async () => {
     await apiPost('/auth/logout', {}).catch(() => {});
     window.location.href = 'login.html';
@@ -152,6 +177,7 @@ function construirLayout() {
 
   _actualizarPuntoAlertas();
   _cargarUsuarioActual();
+  _refrescarNombreNegocio();
 }
 
 function _abrirMenuMas(paginaActual) {
@@ -250,7 +276,7 @@ function _badgeEstadoStock(p) {
   return { texto: 'En stock', clase: 'badge-verde' };
 }
 
-const PALETA_CATEGORIAS = ['badge-morado', 'badge-azul', 'badge-rosado', 'badge-naranja', 'badge-verde'];
+const PALETA_CATEGORIAS = ['badge-morado', 'badge-azul', 'badge-teal', 'badge-naranja', 'badge-verde'];
 
 function _badgeCategoria(categoria) {
   if (!categoria) return '<span class="badge badge-gris">Sin categoría</span>';
@@ -304,38 +330,419 @@ function _renderizarChart(contenedor, dias) {
   const linea = (campo) => dias.map((d, i) => `${i === 0 ? 'M' : 'L'} ${puntoX(i).toFixed(1)},${puntoY(d[campo]).toFixed(1)}`).join(' ');
   const area = (campo) => `${linea(campo)} L ${puntoX(dias.length - 1).toFixed(1)},${(padA + plotH).toFixed(1)} L ${puntoX(0).toFixed(1)},${(padA + plotH).toFixed(1)} Z`;
 
+  const serie1 = _color('--graf-serie-1', '#6d28d9');
+  const serie2 = _color('--graf-serie-2', '#0891b2');
+
   const filasGrid = [0, 0.5, 1].map((frac) => {
     const y = padA + plotH * (1 - frac);
     const valor = Math.round(maxVal * frac);
     return `
-      <line x1="${padI}" y1="${y}" x2="${ancho - padD}" y2="${y}" stroke="#ebe9f5" stroke-width="1" />
-      <text x="${padI - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="#a9a8bd">${valor}</text>
+      <line x1="${padI}" y1="${y}" x2="${ancho - padD}" y2="${y}" stroke="${_color('--graf-grid', '#ebe9f5')}" stroke-width="1" />
+      <text x="${padI - 8}" y="${y + 4}" text-anchor="end" font-size="10" fill="${_color('--graf-eje', '#a9a8bd')}">${valor}</text>
     `;
   }).join('');
 
-  const etiquetasX = dias.map((d, i) => `<text x="${puntoX(i).toFixed(1)}" y="${alto - 6}" text-anchor="middle" font-size="10" fill="#a9a8bd">${d.etiqueta}</text>`).join('');
+  const etiquetasX = dias.map((d, i) => `<text x="${puntoX(i).toFixed(1)}" y="${alto - 6}" text-anchor="middle" font-size="10" fill="${_color('--graf-eje', '#a9a8bd')}">${d.etiqueta}</text>`).join('');
 
   contenedor.innerHTML = `
     <svg viewBox="0 0 ${ancho} ${alto}" preserveAspectRatio="none">
       <defs>
         <linearGradient id="gradEntradas" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#6d28d9" stop-opacity="0.24" />
-          <stop offset="100%" stop-color="#6d28d9" stop-opacity="0" />
+          <stop offset="0%" stop-color="${serie1}" stop-opacity="0.24" />
+          <stop offset="100%" stop-color="${serie1}" stop-opacity="0" />
         </linearGradient>
         <linearGradient id="gradSalidas" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#db2777" stop-opacity="0.2" />
-          <stop offset="100%" stop-color="#db2777" stop-opacity="0" />
+          <stop offset="0%" stop-color="${serie2}" stop-opacity="0.2" />
+          <stop offset="100%" stop-color="${serie2}" stop-opacity="0" />
         </linearGradient>
       </defs>
       ${filasGrid}
       <path d="${area('salidas')}" fill="url(#gradSalidas)" stroke="none" />
       <path d="${area('entradas')}" fill="url(#gradEntradas)" stroke="none" />
-      <path d="${linea('salidas')}" fill="none" stroke="#db2777" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="${linea('entradas')}" fill="none" stroke="#6d28d9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="${linea('salidas')}" fill="none" stroke="${serie2}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="${linea('entradas')}" fill="none" stroke="${serie1}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       ${etiquetasX}
     </svg>
   `;
 }
+
+// ---------- Grafico de dona: estado del inventario ----------
+
+// Estados reales del modelo de datos (stock), no los de activos que
+// describe la guia: aqui un producto esta en stock, bajo minimo o agotado.
+const ESTADOS_STOCK = [
+  { clave: 'en_stock', nombre: 'En stock', token: '--graf-ok', respaldo: '#16a34a' },
+  { clave: 'bajo', nombre: 'Stock bajo', token: '--graf-bajo', respaldo: '#d97706' },
+  { clave: 'agotado', nombre: 'Sin stock', token: '--graf-critico', respaldo: '#dc2626' },
+];
+
+function _colorEstado(e) {
+  return _color(e.token, e.respaldo);
+}
+
+function _clasificarStock(p) {
+  if (p.stock_actual <= 0) return 'agotado';
+  if (p.stock_actual <= p.stock_minimo) return 'bajo';
+  return 'en_stock';
+}
+
+function _renderizarDona(contenedor, productos) {
+  const total = productos.length;
+  if (!total) {
+    contenedor.innerHTML = `
+      <div class="estado-vacio">
+        <div class="icono-vacio">${construirIcono('box', 26)}</div>
+        <div class="titulo">Aún no hay productos registrados</div>
+        <p class="desc">Cuando agregues el primer producto verás aquí cómo se reparte tu inventario.</p>
+      </div>`;
+    return;
+  }
+
+  const conteo = { en_stock: 0, bajo: 0, agotado: 0 };
+  productos.forEach((p) => { conteo[_clasificarStock(p)] += 1; });
+
+  const R = 62;          // radio de la linea media del anillo
+  const GROSOR = 22;
+  const CIRC = 2 * Math.PI * R;
+  const SEPARADOR = 2;   // hueco de 2 px entre segmentos, sobre la superficie
+
+  // Segmentos visibles, en el orden fijo de ESTADOS_STOCK (nunca por ranking):
+  // el color sigue al estado, no a su posicion en la tabla.
+  const visibles = ESTADOS_STOCK.filter((e) => conteo[e.clave] > 0);
+
+  let acumulado = 0;
+  const segmentos = visibles.map((e) => {
+    const largo = (conteo[e.clave] / total) * CIRC;
+    // Con un solo segmento no se dibuja hueco: seria un corte sin sentido.
+    const hueco = visibles.length > 1 ? SEPARADOR : 0;
+    const visible = Math.max(largo - hueco, 0.6);
+    const desfase = -acumulado;
+    acumulado += largo;
+    return `<circle cx="80" cy="80" r="${R}" fill="none" stroke="${_colorEstado(e)}"
+      stroke-width="${GROSOR}" stroke-dasharray="${visible.toFixed(2)} ${(CIRC - visible).toFixed(2)}"
+      stroke-dashoffset="${desfase.toFixed(2)}" transform="rotate(-90 80 80)"><title>${e.nombre}: ${conteo[e.clave]} de ${total}</title></circle>`;
+  }).join('');
+
+  // La leyenda hace de etiqueta directa de cada segmento. Es obligatoria:
+  // el par ambar/verde queda en la banda 6-8 de separacion para daltonismo,
+  // que solo es admisible acompanado de nombre y cifra.
+  const leyenda = ESTADOS_STOCK.map((e) => {
+    const n = conteo[e.clave];
+    const pct = (n / total) * 100;
+    return `
+      <li>
+        <span class="punto" style="background:${_colorEstado(e)}"></span>
+        <span class="nombre">${e.nombre}</span>
+        <span class="cantidad">${_formatoNumero(n)}</span>
+        <span class="pct">${_formatoPorcentaje(pct)}</span>
+      </li>`;
+  }).join('');
+
+  contenedor.innerHTML = `
+    <div class="dona-bloque">
+      <div class="dona-figura">
+        <svg viewBox="0 0 160 160" role="img" aria-label="Distribución de ${total} productos por estado de stock">
+          <circle cx="80" cy="80" r="${R}" fill="none" stroke="${_color('--graf-pista', '#f1f0f6')}" stroke-width="${GROSOR}" />
+          ${segmentos}
+        </svg>
+        <div class="dona-centro">
+          <span class="cifra">${_formatoNumero(total)}</span>
+          <span class="unidad">producto${total === 1 ? '' : 's'}</span>
+        </div>
+      </div>
+      <ul class="dona-leyenda">${leyenda}</ul>
+    </div>`;
+}
+
+// ---------- Barras horizontales: inventario por ambiente ----------
+
+function _renderizarBarrasAmbiente(contenedor, ambientes) {
+  const conStock = ambientes
+    .filter((a) => a.stock_total > 0)
+    .sort((a, b) => b.stock_total - a.stock_total)
+    .slice(0, 5);
+
+  if (!conStock.length) {
+    contenedor.innerHTML = `
+      <div class="estado-vacio">
+        <div class="icono-vacio">${construirIcono('mapPin', 26)}</div>
+        <div class="titulo">Todavía no hay stock por ambiente</div>
+        <p class="desc">Asigna un ambiente a tus productos para ver aquí cómo se distribuyen.</p>
+      </div>`;
+    return;
+  }
+
+  const maximo = conStock[0].stock_total;
+  contenedor.innerHTML = `<ul class="barras-ambiente">${conStock.map((a, i) => `
+    <li class="barra-item ${i === 0 ? 'lider' : ''}">
+      <div class="barra-fila">
+        <span class="barra-nombre">${a.nombre}</span>
+        <span class="barra-valor">${_formatoNumero(a.stock_total)}</span>
+      </div>
+      <div class="barra-riel" role="img" aria-label="${a.nombre}: ${a.stock_total} unidades en stock">
+        <div class="barra-relleno" style="width:${Math.max((a.stock_total / maximo) * 100, 2).toFixed(1)}%"></div>
+      </div>
+    </li>`).join('')}</ul>`;
+}
+
+// ---------- Formato de numeros y tiempo ----------
+
+// Guia §17: separador de miles en espanol -> 1.248
+function _formatoNumero(n) {
+  return Number(n || 0).toLocaleString('es-CO');
+}
+
+function _formatoPorcentaje(n) {
+  return `${Number(n).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
+
+function _tiempoRelativo(fechaIso) {
+  const minutos = Math.round((Date.now() - new Date(fechaIso).getTime()) / 60000);
+  if (minutos < 1) return 'Hace un momento';
+  if (minutos < 60) return `Hace ${minutos} min`;
+  const horas = Math.round(minutos / 60);
+  if (horas < 24) return `Hace ${horas} h`;
+  const dias = Math.round(horas / 24);
+  if (dias === 1) return 'Ayer';
+  if (dias < 30) return `Hace ${dias} días`;
+  return _formatoFechaCorta(fechaIso);
+}
+
+// ---------- Entrada rápida tras escanear ----------
+
+// Lo que se ve al escanear una etiqueta: la ficha del producto en solo
+// lectura y un único campo editable, las unidades que entran. La idea es
+// poder recibir mercancía sin riesgo de tocar precios ni nombres.
+function _abrirEntradaRapida(producto) {
+  const dato = (etiqueta, valor) => `
+    <div class="dato-ficha">
+      <dt>${etiqueta}</dt>
+      <dd>${valor ?? '—'}</dd>
+    </div>`;
+
+  const estado = _badgeEstadoStock(producto);
+
+  const overlay = _abrirModal('Entrada de inventario', `
+    <div class="ficha-escaneo">
+      <div class="ficha-cabecera">
+        <div>
+          <div class="ficha-nombre">${producto.nombre}</div>
+          <div class="ficha-sku">${producto.sku || 'Sin código'}</div>
+        </div>
+        <span class="badge ${estado.clase}">${estado.texto}</span>
+      </div>
+
+      <dl class="ficha-datos">
+        ${dato('Categoría', producto.categoria)}
+        ${dato('Distribuidor', producto.distribuidor_nombre)}
+        ${dato('Ambiente', producto.ambiente_nombre)}
+        ${dato('Precio de venta', formatoMoneda(producto.precio_venta))}
+        ${dato('Costo unitario', formatoMoneda(producto.costo_unitario))}
+        ${dato('Stock mínimo', producto.stock_minimo)}
+      </dl>
+
+      <div class="ficha-stock">
+        <span class="etiqueta">Stock actual</span>
+        <span class="cifra" id="stockActualFicha">${_formatoNumero(producto.stock_actual)}</span>
+      </div>
+    </div>
+
+    <form id="formEntradaRapida">
+      <label class="campo">Unidades que entran
+        <input name="cantidad" type="number" min="1" step="1" value="1" required autofocus inputmode="numeric" />
+      </label>
+      <label class="campo">Motivo <span class="opcional">(opcional)</span>
+        <input name="motivo" placeholder="ej. compra a distribuidor" />
+      </label>
+      <p class="mensaje error" id="mensajeEntrada"></p>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-secundario" id="btnCerrarEntrada">Cerrar</button>
+        <button type="submit" class="btn btn-primario">Agregar al inventario</button>
+      </div>
+    </form>
+  `, { claseModal: 'modal-escaneo' });
+
+  overlay.querySelector('#btnCerrarEntrada').addEventListener('click', _cerrarModal);
+
+  overlay.querySelector('#formEntradaRapida').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(e.target));
+    const cantidad = Number(datos.cantidad);
+    const mensaje = overlay.querySelector('#mensajeEntrada');
+    const boton = e.target.querySelector('button[type="submit"]');
+
+    if (!Number.isInteger(cantidad) || cantidad < 1) {
+      mensaje.textContent = 'Escribe un número entero de una unidad o más.';
+      return;
+    }
+
+    boton.disabled = true;
+    try {
+      await apiPost('/movimientos-inventario', {
+        producto_id: producto.id,
+        tipo: 'entrada',
+        cantidad,
+        motivo: datos.motivo || 'entrada por escaneo',
+      });
+
+      // Se confirma en el sitio y se deja listo para el siguiente lote,
+      // que es como se recibe mercancía: varias cajas seguidas.
+      producto.stock_actual += cantidad;
+      overlay.querySelector('#stockActualFicha').textContent = _formatoNumero(producto.stock_actual);
+      mensaje.className = 'mensaje exito';
+      mensaje.textContent = `Se agregaron ${_formatoNumero(cantidad)} unidad${cantidad === 1 ? '' : 'es'}. Stock actualizado.`;
+      e.target.querySelector('[name="cantidad"]').value = 1;
+      boton.disabled = false;
+
+      if (typeof window.alActualizarInventario === 'function') window.alActualizarInventario();
+    } catch (err) {
+      mensaje.className = 'mensaje error';
+      mensaje.textContent = err.message;
+      boton.disabled = false;
+    }
+  });
+}
+
+// ---------- Datos del negocio ----------
+
+const CAMPOS_NEGOCIO = [
+  { name: 'nombre', etiqueta: 'Nombre del negocio', tipo: 'text', ancho: 'completo', placeholder: 'ej. A lo maldita sea' },
+  { name: 'nit', etiqueta: 'NIT o documento', tipo: 'text' },
+  { name: 'telefono', etiqueta: 'Teléfono', tipo: 'tel' },
+  { name: 'direccion', etiqueta: 'Dirección', tipo: 'text', ancho: 'completo' },
+  { name: 'ciudad', etiqueta: 'Ciudad', tipo: 'text' },
+  { name: 'moneda', etiqueta: 'Moneda', tipo: 'text', placeholder: 'COP' },
+  { name: 'email', etiqueta: 'Correo de contacto', tipo: 'email', ancho: 'completo', placeholder: 'contacto@tunegocio.co' },
+  { name: 'notas', etiqueta: 'Notas', tipo: 'textarea', ancho: 'completo', placeholder: 'Horario, redes, lo que quieras recordar' },
+];
+
+function _escapar(v) {
+  return String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+async function _abrirModalNegocio() {
+  let negocio = {};
+  try {
+    negocio = await apiGet('/negocio');
+  } catch {
+    // Si falla la carga se abre vacío; al guardar se verá el error real.
+  }
+
+  const esAdmin = window.Layout.usuarioActual?.esAdmin;
+
+  const campo = (c) => {
+    const valor = _escapar(negocio[c.name]);
+    const control = c.tipo === 'textarea'
+      ? `<textarea name="${c.name}" rows="3" placeholder="${c.placeholder || ''}" ${esAdmin ? '' : 'disabled'}>${valor}</textarea>`
+      : `<input name="${c.name}" type="${c.tipo}" value="${valor}" placeholder="${c.placeholder || ''}" ${esAdmin ? '' : 'disabled'} />`;
+    return `<label class="campo ${c.ancho === 'completo' ? 'campo-completo' : ''}">${c.etiqueta}${control}</label>`;
+  };
+
+  const overlay = _abrirModal('Datos del negocio', `
+    <form id="formNegocio">
+      <p class="ayuda-modal">Estos datos identifican tu tienda dentro de Stokio y encabezan los reportes.</p>
+      <div class="rejilla-campos">
+        ${CAMPOS_NEGOCIO.map(campo).join('')}
+      </div>
+      <p class="mensaje error" id="mensajeNegocio"></p>
+      ${esAdmin ? `
+        <div class="modal-acciones">
+          <button type="button" class="btn btn-secundario" id="btnCancelarNegocio">Cancelar</button>
+          <button type="submit" class="btn btn-primario">Guardar datos</button>
+        </div>
+      ` : '<p class="ayuda-modal">Solo un administrador puede cambiarlos.</p>'}
+    </form>
+  `);
+
+  if (!esAdmin) return;
+
+  overlay.querySelector('#btnCancelarNegocio').addEventListener('click', _cerrarModal);
+  overlay.querySelector('#formNegocio').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(e.target));
+    const boton = e.target.querySelector('button[type="submit"]');
+    boton.disabled = true;
+    try {
+      await apiPut('/negocio', datos);
+      _cerrarModal();
+      _refrescarNombreNegocio();
+    } catch (err) {
+      overlay.querySelector('#mensajeNegocio').textContent = err.message;
+      boton.disabled = false;
+    }
+  });
+}
+
+// El nombre del negocio acompaña a la marca en la barra lateral.
+async function _refrescarNombreNegocio() {
+  const destino = document.getElementById('nombreNegocio');
+  if (!destino) return;
+  try {
+    const negocio = await apiGet('/negocio');
+    destino.textContent = negocio.nombre || '';
+    destino.hidden = !negocio.nombre;
+  } catch {
+    destino.hidden = true;
+  }
+}
+
+// ---------- Apariencia (tema claro / oscuro) ----------
+
+const OPCIONES_TEMA = [
+  { valor: 'claro', etiqueta: 'Claro', icono: 'sol', desc: 'Siempre el tema claro' },
+  { valor: 'oscuro', etiqueta: 'Oscuro', icono: 'luna', desc: 'Siempre el tema oscuro' },
+  { valor: 'sistema', etiqueta: 'Automático', icono: 'monitor', desc: 'Sigue a tu sistema' },
+];
+
+function _abrirModalApariencia() {
+  const actual = window.Tema ? window.Tema.leer() : 'sistema';
+
+  const overlay = _abrirModal('Apariencia', `
+    <p class="ayuda-modal">Elige cómo quieres ver Stokio. La preferencia se guarda en este dispositivo.</p>
+    <div class="opciones-tema" role="radiogroup" aria-label="Tema de la interfaz">
+      ${OPCIONES_TEMA.map((o) => `
+        <button type="button" class="opcion-tema ${o.valor === actual ? 'activa' : ''}"
+                role="radio" aria-checked="${o.valor === actual}" data-tema="${o.valor}">
+          <span class="opcion-tema-icono">${construirIcono(o.icono, 20)}</span>
+          <span class="opcion-tema-nombre">${o.etiqueta}</span>
+          <span class="opcion-tema-desc">${o.desc}</span>
+        </button>
+      `).join('')}
+    </div>
+  `);
+
+  overlay.querySelectorAll('.opcion-tema').forEach((boton) => {
+    boton.addEventListener('click', () => {
+      if (window.Tema) window.Tema.guardar(boton.dataset.tema);
+      overlay.querySelectorAll('.opcion-tema').forEach((b) => {
+        const activa = b === boton;
+        b.classList.toggle('activa', activa);
+        b.setAttribute('aria-checked', String(activa));
+      });
+    });
+  });
+}
+
+// ---------- Repintado al cambiar de tema ----------
+// Los graficos son SVG generado: llevan el color escrito en el atributo, y
+// no se actualizan solos cuando cambian los tokens. Cada pagina registra
+// aqui como volver a dibujarse.
+
+const _repintadores = [];
+
+function _alCambiarTema(fn) {
+  _repintadores.push(fn);
+}
+
+document.addEventListener('temacambiado', () => {
+  _repintadores.forEach((fn) => {
+    try {
+      fn();
+    } catch (err) {
+      console.error('Fallo al repintar tras cambiar el tema', err);
+    }
+  });
+});
 
 function _debounce(fn, espera = 200) {
   let t;
@@ -545,7 +952,7 @@ async function _abrirEscanerQr() {
     ` : '<p class="mensaje error">Tu navegador no soporta escaneo por cámara. Ingresa el código manualmente.</p>'}
     <form id="formCodigoManual" class="escaner-manual">
       <label class="campo">Código del producto (SKU)
-        <input name="codigo" placeholder="ej. CAM-CLA-001" autofocus />
+        <input name="codigo" placeholder="ej. CAM-CLA-NEG-M" autofocus />
       </label>
       <button type="submit" class="btn btn-primario">Buscar</button>
     </form>
@@ -563,7 +970,7 @@ async function _abrirEscanerQr() {
     }
     _detenerCamaraEscaner();
     _cerrarModal();
-    _abrirDetalleProducto(encontrado.id);
+    _abrirEntradaRapida(encontrado);
   };
 
   overlay.querySelector('#formCodigoManual').addEventListener('submit', (e) => {
@@ -622,11 +1029,22 @@ window.Layout = {
   formatoFechaCorta: _formatoFechaCorta,
   claveDia: _claveDia,
   renderizarChart: _renderizarChart,
+  renderizarDona: _renderizarDona,
+  renderizarBarrasAmbiente: _renderizarBarrasAmbiente,
+  clasificarStock: _clasificarStock,
+  formatoNumero: _formatoNumero,
+  formatoPorcentaje: _formatoPorcentaje,
+  tiempoRelativo: _tiempoRelativo,
   debounce: _debounce,
   abrirModalMovimiento: _abrirModalMovimiento,
   abrirModalVenta: _abrirModalVenta,
   abrirDetalleProducto: _abrirDetalleProducto,
   abrirEscanerQr: _abrirEscanerQr,
+  abrirEntradaRapida: _abrirEntradaRapida,
+  abrirModalNegocio: _abrirModalNegocio,
+  abrirModalApariencia: _abrirModalApariencia,
+  alCambiarTema: _alCambiarTema,
+  color: _color,
 };
 
 construirLayout();

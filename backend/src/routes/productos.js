@@ -12,7 +12,8 @@ const SELECT_CON_RELACIONES = `
 
 // GET /api/productos - listar todos los productos
 router.get('/', (req, res) => {
-  const productos = db.prepare(`${SELECT_CON_RELACIONES} ORDER BY p.nombre`).all();
+  // `orden` manda; el nombre solo desempata entre productos sin posición.
+  const productos = db.prepare(`${SELECT_CON_RELACIONES} ORDER BY p.orden, p.nombre`).all();
   res.json(productos);
 });
 
@@ -31,10 +32,14 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'nombre, costo_unitario y precio_venta son obligatorios' });
   }
 
+  // Sin posición explícita, un producto nuevo se coloca al final del
+  // catálogo. Con el valor por defecto 0 se colaría antes de todo.
+  const siguienteOrden = (db.prepare('SELECT MAX(orden) AS m FROM productos').get().m || 0) + 1;
+
   const info = db.prepare(`
-    INSERT INTO productos (nombre, categoria, sku, costo_unitario, precio_venta, stock_actual, stock_minimo, ambiente_id, distribuidor_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(nombre, categoria || null, sku || null, costo_unitario, precio_venta, stock_actual || 0, stock_minimo || 0, ambiente_id || null, distribuidor_id || null);
+    INSERT INTO productos (nombre, categoria, sku, costo_unitario, precio_venta, stock_actual, stock_minimo, ambiente_id, distribuidor_id, orden)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(nombre, categoria || null, sku || null, costo_unitario, precio_venta, stock_actual || 0, stock_minimo || 0, ambiente_id || null, distribuidor_id || null, siguienteOrden);
 
   const nuevo = db.prepare(`${SELECT_CON_RELACIONES} WHERE p.id = ?`).get(info.lastInsertRowid);
   res.status(201).json(nuevo);

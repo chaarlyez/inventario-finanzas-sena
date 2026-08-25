@@ -4,113 +4,141 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
-  <title>Dashboard — Stokio</title>
+  <title>Resumen — Stokio</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/tema.js"></script>
 </head>
 <body data-page="dashboard">
   <main class="contenido">
+    <!-- Guía §8: saludo a la izquierda, acciones a la derecha. -->
     <div class="encabezado-pagina">
       <div>
         <h1 id="saludo">¡Hola! 👋</h1>
-        <p class="subtitulo">Aquí tienes un resumen de tu inventario.</p>
+        <p class="subtitulo">Aquí tienes el resumen de tu inventario.</p>
       </div>
-      <div class="fecha-pill" id="fechaHoy"></div>
+      <div class="acciones-encabezado">
+        <button type="button" class="btn btn-secundario" id="btnEscanearQr">
+          <span class="icono-btn" data-icono="qrCode"></span>
+          Escanear QR
+        </button>
+        <a class="btn btn-primario" href="inventario.html?nuevo=1">
+          <span class="icono-btn" data-icono="plus"></span>
+          Registrar producto
+        </a>
+      </div>
     </div>
 
+    <!-- Guía §8: cuatro tarjetas con jerarquía etiqueta → cifra → apoyo → icono. -->
     <div class="tarjetas-stats">
-      <div class="tarjeta tarjeta-stat">
-        <div class="icono-circulo morado"></div>
+      <div class="tarjeta tarjeta-stat destacada">
         <div class="etiqueta">Productos totales</div>
         <div class="valor" id="statProductos">—</div>
+        <div class="apoyo" id="apoyoProductos">Cargando…</div>
+        <div class="icono-circulo suave morado" data-icono="box"></div>
       </div>
       <div class="tarjeta tarjeta-stat">
-        <div class="icono-circulo rosado"></div>
-        <div class="etiqueta">Stock total</div>
-        <div class="valor" id="statStock">—</div>
+        <div class="etiqueta">En stock</div>
+        <div class="valor" id="statEnStock">—</div>
+        <div class="apoyo" id="apoyoEnStock">Cargando…</div>
+        <div class="icono-circulo suave verde" data-icono="check"></div>
       </div>
       <div class="tarjeta tarjeta-stat">
-        <div class="icono-circulo azul"></div>
-        <div class="etiqueta">Entradas hoy</div>
-        <div class="valor" id="statEntradas">—</div>
-        <div class="tendencia" id="tendenciaEntradas"></div>
+        <div class="etiqueta">Stock bajo</div>
+        <div class="valor" id="statStockBajo">—</div>
+        <div class="apoyo" id="apoyoStockBajo">Cargando…</div>
+        <div class="icono-circulo suave naranja" data-icono="alert"></div>
       </div>
       <div class="tarjeta tarjeta-stat">
-        <div class="icono-circulo naranja"></div>
-        <div class="etiqueta">Salidas hoy</div>
-        <div class="valor" id="statSalidas">—</div>
-        <div class="tendencia" id="tendenciaSalidas"></div>
+        <div class="etiqueta">Sin stock</div>
+        <div class="valor" id="statSinStock">—</div>
+        <div class="apoyo" id="apoyoSinStock">Cargando…</div>
+        <div class="icono-circulo suave rojo" data-icono="box"></div>
       </div>
     </div>
+
+    <!-- Guía §8, segunda fila: 7 columnas de estado + 5 de ambientes. -->
+    <div class="fila-12">
+      <section class="panel col-7">
+        <div class="panel-cabecera">
+          <div>
+            <h2>Estado del inventario</h2>
+            <p class="sub" id="subEstado">Distribución actual de tus productos</p>
+          </div>
+        </div>
+        <div id="donaEstado"></div>
+      </section>
+
+      <section class="panel col-5">
+        <div class="panel-cabecera">
+          <div>
+            <h2>Inventario por ambiente</h2>
+            <p class="sub">Unidades en stock por ubicación</p>
+          </div>
+          <a href="ambientes.html">Ver todos</a>
+        </div>
+        <div id="barrasAmbientes"></div>
+      </section>
+    </div>
+
+    <!-- Guía §8, tercera fila: atención (7) e historial (5). -->
+    <div class="fila-12">
+      <section class="panel col-7">
+        <div class="panel-cabecera">
+          <div>
+            <h2>Productos que requieren atención</h2>
+            <p class="sub">Por debajo del mínimo o agotados</p>
+          </div>
+          <a href="alertas.html">Ver todas</a>
+        </div>
+        <div class="lista-atencion" id="listaAtencion"></div>
+      </section>
+
+      <section class="panel col-5">
+        <div class="panel-cabecera">
+          <div>
+            <h2>Actividad reciente</h2>
+            <p class="sub">Últimos movimientos de stock</p>
+          </div>
+          <a href="movimientos-stock.html">Ver todos</a>
+        </div>
+        <div id="actividadReciente"></div>
+      </section>
+    </div>
+
+    <!-- Movimientos de la semana: se conserva del dashboard anterior. -->
+    <section class="panel">
+      <div class="panel-cabecera">
+        <div>
+          <h2>Movimientos de los últimos 7 días</h2>
+          <p class="sub">Unidades que entraron y salieron cada día</p>
+        </div>
+        <span class="leyenda-chart">
+          <span class="punto-leyenda morado">Entradas</span>
+          <span class="punto-leyenda teal">Salidas</span>
+        </span>
+      </div>
+      <div class="chart-contenedor" id="chartMovimientos"></div>
+    </section>
 
     <div>
       <div class="panel-cabecera"><h2>Acciones rápidas</h2></div>
       <div class="acciones-rapidas">
-        <a class="accion-rapida" href="inventario.html?nuevo=1">
-          <div class="icono-circulo morado"></div>
-          <div class="titulo">Nuevo producto</div>
-          <div class="desc">Agregar un nuevo producto al inventario</div>
-        </a>
         <a class="accion-rapida" href="inventario.html?movimiento=entrada">
-          <div class="icono-circulo azul"></div>
+          <div class="icono-circulo suave morado" data-icono="entrada"></div>
           <div class="titulo">Registrar entrada</div>
-          <div class="desc">Registrar productos que ingresan</div>
+          <div class="desc">Suma unidades que ingresan al inventario</div>
         </a>
         <a class="accion-rapida" href="inventario.html?venta=1">
-          <div class="icono-circulo verde"></div>
+          <div class="icono-circulo suave verde" data-icono="cash"></div>
           <div class="titulo">Registrar venta</div>
           <div class="desc">Descuenta el stock y registra el ingreso</div>
         </a>
         <a class="accion-rapida" href="reportes.html">
-          <div class="icono-circulo rosado"></div>
+          <div class="icono-circulo suave teal" data-icono="chart"></div>
           <div class="titulo">Ver reportes</div>
           <div class="desc">Rentabilidad y balance general</div>
         </a>
       </div>
-    </div>
-
-    <div>
-      <div class="panel-cabecera">
-        <h2>Productos recientes</h2>
-        <a href="inventario.html">Ver todos</a>
-      </div>
-      <div class="tabla-contenedor">
-        <div class="tabla-scroll">
-          <table>
-            <thead>
-              <tr><th>Producto</th><th>Categoría</th><th>Stock</th><th>Precio</th><th>Estado</th><th></th></tr>
-            </thead>
-            <tbody id="tablaProductosRecientes"><tr class="tabla-vacio-fila"><td colspan="6">Cargando…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="fila-paneles">
-      <div class="panel">
-        <div class="panel-cabecera">
-          <h2>Alertas importantes</h2>
-          <a href="alertas.html">Ver todas</a>
-        </div>
-        <div class="lista-alertas" id="listaAlertas">
-          <p class="sin-alertas">Cargando…</p>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-cabecera">
-          <h2>Resumen de movimientos</h2>
-          <span class="leyenda-chart">
-            <span class="punto-leyenda morado">Entradas</span>
-            <span class="punto-leyenda rosado">Salidas</span>
-          </span>
-        </div>
-        <div class="chart-contenedor" id="chartMovimientos"></div>
-      </div>
-    </div>
-
-    <div class="tip-final">
-      <span>💡 Tip: Mantén tu inventario actualizado para mejores resultados.</span>
-      <span>¿Necesitas ayuda? <a href="https://github.com/chaarlyez/inventario-finanzas-sena#readme" target="_blank" rel="noopener">Ver documentación</a></span>
     </div>
   </main>
 

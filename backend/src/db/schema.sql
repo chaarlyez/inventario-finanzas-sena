@@ -9,6 +9,21 @@ CREATE TABLE IF NOT EXISTS ambientes (
   creado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Datos de la tienda/negocio. Una sola fila (id = 1): son los datos de
+-- cabecera que salen en reportes y en la aplicación.
+CREATE TABLE IF NOT EXISTS negocio (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  nombre TEXT,
+  nit TEXT,
+  direccion TEXT,
+  ciudad TEXT,
+  telefono TEXT,
+  email TEXT,
+  moneda TEXT NOT NULL DEFAULT 'COP',
+  notas TEXT,
+  actualizado_en TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Proveedores/fabricantes a los que se les compra el inventario
 CREATE TABLE IF NOT EXISTS distribuidores (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,6 +64,9 @@ CREATE TABLE IF NOT EXISTS productos (
   stock_minimo INTEGER NOT NULL DEFAULT 0,
   ambiente_id INTEGER REFERENCES ambientes(id),
   distribuidor_id INTEGER REFERENCES distribuidores(id),
+  -- Posición en el catálogo. El orden alfabético no sirve para un catálogo
+  -- por tallas: dejaría L, M, S, XL en lugar de S, M, L, XL.
+  orden INTEGER NOT NULL DEFAULT 0,
   creado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

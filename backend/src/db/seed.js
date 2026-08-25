@@ -52,25 +52,77 @@ if (!yaTieneDistribuidores) {
 }
 
 // ---------- Productos ----------
-const yaTieneProductos = db.prepare('SELECT COUNT(*) AS n FROM productos').get().n > 0;
-
-if (!yaTieneProductos) {
+// A diferencia del resto, esto no es todo-o-nada: inserta las variantes
+// que falten y respeta las que ya existan, para poder ampliar el catálogo
+// sin borrar la base ni tocar el stock que ya está registrado.
+{
   const insertarProducto = db.prepare(`
-    INSERT INTO productos (nombre, categoria, sku, costo_unitario, precio_venta, stock_actual, stock_minimo, ambiente_id, distribuidor_id)
-    VALUES (@nombre, @categoria, @sku, @costo_unitario, @precio_venta, @stock_actual, @stock_minimo, @ambiente_id, @distribuidor_id)
+    INSERT INTO productos (nombre, categoria, sku, costo_unitario, precio_venta, stock_actual, stock_minimo, ambiente_id, distribuidor_id, orden)
+    VALUES (@nombre, @categoria, @sku, @costo_unitario, @precio_venta, @stock_actual, @stock_minimo, @ambiente_id, @distribuidor_id, @orden)
   `);
 
-  const productos = [
-    { nombre: 'Camiseta clásica', categoria: 'Camisetas', sku: 'CAM-CLA-001', costo_unitario: 30000, precio_venta: 55000, stock_actual: 20, stock_minimo: 5, ambiente_id: idBodega, distribuidor_id: idDistribuidor },
-    { nombre: 'Camiseta oversize', categoria: 'Camisetas', sku: 'CAM-OVE-001', costo_unitario: 40000, precio_venta: 85000, stock_actual: 15, stock_minimo: 5, ambiente_id: idBodega, distribuidor_id: idDistribuidor },
+  // Catálogo por variante: cada combinación de corte, color y talla es un
+  // producto propio, porque cada una tiene su propio stock y su propio QR.
+  const CORTES = [
+    { clave: 'CLA', nombre: 'clásica', costo: 30000, precio: 55000 },
+    { clave: 'OVE', nombre: 'oversize', costo: 40000, precio: 85000 },
   ];
+  // Blanca antes que negra, y las tallas de menor a mayor. El orden de
+  // estos arreglos es el orden del catálogo: se guarda en la columna
+  // `orden` porque alfabéticamente las tallas quedarían L, M, S, XL.
+  const COLORES = [
+    { clave: 'BLA', nombre: 'blanca' },
+    { clave: 'NEG', nombre: 'negra' },
+  ];
+  const TALLAS = ['S', 'M', 'L', 'XL'];
+
+  const productos = [];
+  let orden = 0;
+  for (const corte of CORTES) {
+    for (const color of COLORES) {
+      for (const talla of TALLAS) {
+        orden += 1;
+        productos.push({
+          nombre: `Camiseta ${corte.nombre} ${color.nombre} · talla ${talla}`,
+          categoria: 'Camisetas',
+          // El SKU es lo que va dentro del QR: corto, legible y sin
+          // acentos, para poder teclearlo si la cámara falla.
+          sku: `CAM-${corte.clave}-${color.clave}-${talla}`,
+          costo_unitario: corte.costo,
+          precio_venta: corte.precio,
+          stock_actual: 0,
+          stock_minimo: 3,
+          ambiente_id: idBodega,
+          distribuidor_id: idDistribuidor,
+          orden,
+        });
+      }
+    }
+  }
+
+  const existentes = new Set(
+    db.prepare('SELECT sku FROM productos WHERE sku IS NOT NULL').all().map((f) => f.sku),
+  );
+  const faltantes = productos.filter((p) => !existentes.has(p.sku));
 
   const insertarMuchos = db.transaction((filas) => {
     for (const fila of filas) insertarProducto.run(fila);
   });
 
-  insertarMuchos(productos);
-  console.log('Productos de ejemplo insertados.');
-} else {
-  console.log('Ya hay productos, no se insertó nada.');
+  if (faltantes.length > 0) {
+    insertarMuchos(faltantes);
+    console.log(`Productos insertados: ${faltantes.length} variante(s) de camiseta.`);
+  } else {
+    console.log('Las variantes de camiseta ya estaban registradas.');
+  }
+
+  // El orden del catálogo se reaplica siempre, también sobre las variantes
+  // que ya existían: así cambiarlo aquí basta para que cambie en la app,
+  // sin tener que borrar y volver a crear productos.
+  const fijarOrden = db.prepare('UPDATE productos SET orden = ? WHERE sku = ?');
+  const reordenar = db.transaction((filas) => {
+    for (const fila of filas) fijarOrden.run(fila.orden, fila.sku);
+  });
+  reordenar(productos);
+  console.log('Orden del catálogo aplicado: clásica blanca, clásica negra, oversize blanca, oversize negra (S a XL).');
 }
