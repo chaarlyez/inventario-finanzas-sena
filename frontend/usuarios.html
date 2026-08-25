@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
+  <title>Usuarios — Stokio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="usuarios" data-search-placeholder="Buscar usuario…">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1>Usuarios</h1>
+        <p class="subtitulo">Quién puede entrar a Stokio y con qué rol.</p>
+      </div>
+      <button type="button" class="btn btn-primario" id="btnNuevoUsuario"></button>
+    </div>
+
+    <p class="mensaje" id="mensajeGlobal"></p>
+
+    <div class="tabla-contenedor">
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Creado</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tablaUsuarios"><tr class="tabla-vacio-fila"><td colspan="5">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/usuarios.js"></script>
+</body>
+</html>

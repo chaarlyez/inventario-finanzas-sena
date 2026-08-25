@@ -3,40 +3,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Inventario y Finanzas</title>
+  <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
+  <title>Dashboard — Stokio</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <header>
-    <h1>Inventario &amp; Finanzas</h1>
-    <nav>
-      <a href="index.html" class="activo">Dashboard</a>
-      <a href="inventario.html">Inventario</a>
-      <a href="movimientos.html">Movimientos de dinero</a>
-      <a href="reportes.html">Reportes</a>
-    </nav>
-  </header>
-
-  <main>
-    <div class="tarjetas" id="tarjetas">
-      <div class="tarjeta"><div class="etiqueta">Ingresos totales</div><div class="valor" id="ingresos">—</div></div>
-      <div class="tarjeta"><div class="etiqueta">Egresos totales</div><div class="valor" id="egresos">—</div></div>
-      <div class="tarjeta"><div class="etiqueta">Balance</div><div class="valor" id="balance">—</div></div>
-      <div class="tarjeta"><div class="etiqueta">Valor inventario actual</div><div class="valor" id="valorInventario">—</div></div>
+<body data-page="dashboard">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1 id="saludo">¡Hola! 👋</h1>
+        <p class="subtitulo">Aquí tienes un resumen de tu inventario.</p>
+      </div>
+      <div class="fecha-pill" id="fechaHoy"></div>
     </div>
 
-    <section>
-      <h2>Productos con stock bajo</h2>
-      <table>
-        <thead>
-          <tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th></tr>
-        </thead>
-        <tbody id="tablaStockBajo"><tr><td colspan="3">Cargando…</td></tr></tbody>
-      </table>
-    </section>
+    <div class="tarjetas-stats">
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo morado"></div>
+        <div class="etiqueta">Productos totales</div>
+        <div class="valor" id="statProductos">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo rosado"></div>
+        <div class="etiqueta">Stock total</div>
+        <div class="valor" id="statStock">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo azul"></div>
+        <div class="etiqueta">Entradas hoy</div>
+        <div class="valor" id="statEntradas">—</div>
+        <div class="tendencia" id="tendenciaEntradas"></div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo naranja"></div>
+        <div class="etiqueta">Salidas hoy</div>
+        <div class="valor" id="statSalidas">—</div>
+        <div class="tendencia" id="tendenciaSalidas"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-cabecera"><h2>Acciones rápidas</h2></div>
+      <div class="acciones-rapidas">
+        <a class="accion-rapida" href="inventario.html?nuevo=1">
+          <div class="icono-circulo morado"></div>
+          <div class="titulo">Nuevo producto</div>
+          <div class="desc">Agregar un nuevo producto al inventario</div>
+        </a>
+        <a class="accion-rapida" href="inventario.html?movimiento=entrada">
+          <div class="icono-circulo azul"></div>
+          <div class="titulo">Registrar entrada</div>
+          <div class="desc">Registrar productos que ingresan</div>
+        </a>
+        <a class="accion-rapida" href="inventario.html?venta=1">
+          <div class="icono-circulo verde"></div>
+          <div class="titulo">Registrar venta</div>
+          <div class="desc">Descuenta el stock y registra el ingreso</div>
+        </a>
+        <a class="accion-rapida" href="reportes.html">
+          <div class="icono-circulo rosado"></div>
+          <div class="titulo">Ver reportes</div>
+          <div class="desc">Rentabilidad y balance general</div>
+        </a>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-cabecera">
+        <h2>Productos recientes</h2>
+        <a href="inventario.html">Ver todos</a>
+      </div>
+      <div class="tabla-contenedor">
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Producto</th><th>Categoría</th><th>Stock</th><th>Precio</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody id="tablaProductosRecientes"><tr class="tabla-vacio-fila"><td colspan="6">Cargando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="fila-paneles">
+      <div class="panel">
+        <div class="panel-cabecera">
+          <h2>Alertas importantes</h2>
+          <a href="alertas.html">Ver todas</a>
+        </div>
+        <div class="lista-alertas" id="listaAlertas">
+          <p class="sin-alertas">Cargando…</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-cabecera">
+          <h2>Resumen de movimientos</h2>
+          <span class="leyenda-chart">
+            <span class="punto-leyenda morado">Entradas</span>
+            <span class="punto-leyenda rosado">Salidas</span>
+          </span>
+        </div>
+        <div class="chart-contenedor" id="chartMovimientos"></div>
+      </div>
+    </div>
+
+    <div class="tip-final">
+      <span>💡 Tip: Mantén tu inventario actualizado para mejores resultados.</span>
+      <span>¿Necesitas ayuda? <a href="https://github.com/chaarlyez/inventario-finanzas-sena#readme" target="_blank" rel="noopener">Ver documentación</a></span>
+    </div>
   </main>
 
   <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

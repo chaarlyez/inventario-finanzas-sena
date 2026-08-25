@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
+  <title>Inventario — Stokio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="inventario" data-search-placeholder="Buscar por producto o motivo…">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1>Inventario</h1>
+        <p class="subtitulo">Historial de entradas, salidas y ventas de stock.</p>
+      </div>
+      <div style="display:flex; gap:0.6rem;">
+        <button type="button" class="btn btn-secundario" id="btnRegistrarMovimiento"></button>
+        <button type="button" class="btn btn-primario" id="btnRegistrarVenta"></button>
+      </div>
+    </div>
+
+    <p class="mensaje" id="mensajeGlobal"></p>
+
+    <div class="tarjetas-stats">
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo morado"></div>
+        <div class="etiqueta">Stock total</div>
+        <div class="valor" id="statStockTotal">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo azul"></div>
+        <div class="etiqueta">Entradas (30 días)</div>
+        <div class="valor" id="statEntradas30">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo naranja"></div>
+        <div class="etiqueta">Salidas (30 días)</div>
+        <div class="valor" id="statSalidas30">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo verde"></div>
+        <div class="etiqueta">Ventas (30 días)</div>
+        <div class="valor" id="statVentas30">—</div>
+      </div>
+    </div>
+
+    <div class="barra-filtros">
+      <select id="filtroProducto">
+        <option value="">Todos los productos</option>
+      </select>
+      <select id="filtroTipo">
+        <option value="">Entradas y salidas</option>
+        <option value="entrada">Solo entradas</option>
+        <option value="salida">Solo salidas</option>
+      </select>
+    </div>
+
+    <div class="tabla-contenedor">
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th></tr>
+          </thead>
+          <tbody id="tablaHistorial"><tr class="tabla-vacio-fila"><td colspan="5">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/movimientos-stock.js"></script>
+</body>
+</html>

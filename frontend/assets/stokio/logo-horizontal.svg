@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 190" fill="none">
+  <defs><linearGradient id="g" x1="28" y1="12" x2="154" y2="172" gradientUnits="userSpaceOnUse"><stop stop-color="#A855F7"/><stop offset=".52" stop-color="#7C3AED"/><stop offset="1" stop-color="#4C1D95"/></linearGradient></defs>
+  <g><path fill="url(#g)" d="m93 10 73 38-73 39L20 48 93 10Z"/><path fill="#8B5CF6" d="M20 61 93 100v45l-73-39V61Z"/><path fill="#6D28D9" d="m166 61-73 39v45l73-39V61Z"/><path fill="#38106B" d="m20 106 73 39 73-39v30l-73 39-73-39v-30Z"/><path fill="url(#g)" d="m20 136 73 39 73-39v29l-73 39-73-39v-29Z"/></g>
+  <path fill="#fff" d="M240 63h46v14h-46c-12 0-20 7-20 18s8 18 20 18h27c27 0 44 14 44 36s-17 36-44 36h-54v-14h54c13 0 22-8 22-21s-9-21-22-21h-27c-26 0-43-13-43-35s17-31 43-31Zm81 0h21l33 42 33-42h21l-43 55v67h-20v-67l-45-55Zm105 0h20v122h-20V63Zm37 0h49c33 0 54 23 54 61s-21 61-54 61h-49V63Zm20 14v94h28c20 0 33-18 33-47s-13-47-33-47h-28Zm111-14h20v122h-20V63Zm37 61c0-38 24-63 61-63 24 0 43 10 54 28l-17 9c-8-13-21-20-37-20-25 0-42 18-42 45s17 45 42 45c16 0 29-7 37-20l17 9c-11 18-30 28-54 28-37 0-61-25-61-63Z"/>
+  <text x="241" y="184" fill="#fff" font-family="Arial, sans-serif" font-size="16" font-weight="600" letter-spacing="8">CONTROL · ORGANIZA · CONOCE</text>
+</svg>

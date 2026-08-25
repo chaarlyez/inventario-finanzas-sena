@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
+  <title>Alertas — Stokio</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-page="alertas" data-search-placeholder="Buscar producto en alertas…">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1>Alertas de inventario</h1>
+        <p class="subtitulo">Productos que necesitan atención por su nivel de stock.</p>
+      </div>
+    </div>
+
+    <div class="grupo-alertas">
+      <div>
+        <div class="panel-cabecera"><h2>Sin stock</h2></div>
+        <div class="tabla-contenedor">
+          <div class="tabla-scroll">
+            <table>
+              <thead><tr><th>Producto</th><th>Categoría</th><th>Ambiente</th><th>Stock mínimo</th><th></th></tr></thead>
+              <tbody id="tablaSinStock"><tr class="tabla-vacio-fila"><td colspan="5">Cargando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-cabecera"><h2>Stock bajo</h2></div>
+        <div class="tabla-contenedor">
+          <div class="tabla-scroll">
+            <table>
+              <thead><tr><th>Producto</th><th>Categoría</th><th>Ambiente</th><th>Stock actual</th><th>Stock mínimo</th><th></th></tr></thead>
+              <tbody id="tablaStockBajo"><tr class="tabla-vacio-fila"><td colspan="6">Cargando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/alertas.js"></script>
+</body>
+</html>

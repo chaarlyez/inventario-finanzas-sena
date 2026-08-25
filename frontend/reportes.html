@@ -3,31 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reportes de rentabilidad</title>
+  <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
+  <title>Reportes — Stokio</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <header>
-    <h1>Inventario &amp; Finanzas</h1>
-    <nav>
-      <a href="index.html">Dashboard</a>
-      <a href="inventario.html">Inventario</a>
-      <a href="movimientos.html">Movimientos de dinero</a>
-      <a href="reportes.html" class="activo">Reportes</a>
-    </nav>
-  </header>
+<body data-page="reportes" data-search-placeholder="Buscar producto en el reporte…">
+  <main class="contenido">
+    <div class="encabezado-pagina">
+      <div>
+        <h1>Reportes</h1>
+        <p class="subtitulo">Balance general y rentabilidad por producto.</p>
+      </div>
+    </div>
 
-  <main>
-    <h2>Rentabilidad por producto</h2>
-    <table>
-      <thead>
-        <tr><th>Producto</th><th>Unidades vendidas</th><th>Ingresos</th><th>Costo de lo vendido</th><th>Utilidad</th><th>Margen</th></tr>
-      </thead>
-      <tbody id="tablaRentabilidad"><tr><td colspan="6">Cargando…</td></tr></tbody>
-    </table>
+    <div class="tira-resumen">
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo verde"></div>
+        <div class="etiqueta">Ingresos totales</div>
+        <div class="valor" id="resIngresos">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo rojo"></div>
+        <div class="etiqueta">Egresos totales</div>
+        <div class="valor" id="resEgresos">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo morado"></div>
+        <div class="etiqueta">Balance</div>
+        <div class="valor" id="resBalance">—</div>
+      </div>
+      <div class="tarjeta tarjeta-stat">
+        <div class="icono-circulo azul"></div>
+        <div class="etiqueta">Valor inventario actual</div>
+        <div class="valor" id="resValorInventario">—</div>
+      </div>
+    </div>
+
+    <div class="panel-cabecera"><h2>Rentabilidad por producto</h2></div>
+    <div class="tabla-contenedor">
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr><th>Producto</th><th>Unidades vendidas</th><th>Ingresos</th><th>Costo de lo vendido</th><th>Utilidad</th><th>Margen</th></tr>
+          </thead>
+          <tbody id="tablaRentabilidad"><tr class="tabla-vacio-fila"><td colspan="6">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </main>
 
   <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
   <script src="js/reportes.js"></script>
 </body>
 </html>

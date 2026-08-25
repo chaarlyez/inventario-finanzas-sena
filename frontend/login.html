@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="assets/stokio/favicon.svg" />
+  <title>Iniciar sesión — Stokio</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body class="pagina-login">
+  <div class="login-shell">
+    <aside class="login-marca">
+      <img class="login-marca-logo" src="assets/stokio/logo-vertical.svg" alt="Stokio — Controla. Organiza. Conoce." width="220" height="244" />
+      <p class="login-marca-desc">Tu inventario y tus finanzas, en un solo lugar.</p>
+    </aside>
+
+    <main class="login-formulario">
+      <div class="login-caja">
+        <h1>Bienvenido de nuevo</h1>
+        <p class="subtitulo">Ingresa tus datos para acceder a tu inventario.</p>
+
+        <form id="formLogin">
+          <label class="campo">Correo
+            <input type="email" name="email" placeholder="tucorreo@ejemplo.com" required autofocus />
+          </label>
+          <label class="campo">Contraseña
+            <input type="password" name="password" placeholder="••••••••" required />
+          </label>
+
+          <p class="mensaje error" id="mensajeLogin"></p>
+
+          <button type="submit" class="btn btn-primario login-boton">Iniciar sesión</button>
+        </form>
+
+        <p class="login-ayuda">¿No tienes acceso? Contacta al administrador.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
