@@ -18,7 +18,19 @@ const { cargarUsuario, requiereSesion } = require('./middleware/auth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: true, credentials: true }));
+const EN_PRODUCCION = process.env.NODE_ENV === 'production';
+
+// Detrás del proxy de la plataforma, para que req.ip sea la IP real del
+// visitante y no la del proxy (lo usa el freno de intentos de login).
+if (EN_PRODUCCION) app.set('trust proxy', 1);
+
+// En producción el mismo servidor entrega el frontend y el API, así que
+// no hay peticiones entre orígenes y CORS no hace falta. Dejarlo abierto
+// con `credentials: true` permitiría que cualquier web hiciera peticiones
+// autenticadas en nombre de quien tenga la sesión abierta.
+if (!EN_PRODUCCION) {
+  app.use(cors({ origin: true, credentials: true }));
+}
 app.use(express.json());
 app.use(cookieParser());
 app.use(cargarUsuario);
@@ -50,6 +62,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+// 0.0.0.0 explícito: en un contenedor hay que escuchar en todas las
+// interfaces para que la plataforma pueda enrutar el tráfico.
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

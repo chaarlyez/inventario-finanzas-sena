@@ -1,0 +1,51 @@
+# Configuración de despliegue en Fly.io.
+#
+# `app` y `primary_region` los ajusta `fly launch`; si los cambias a mano,
+# el nombre tiene que ser único en toda la plataforma.
+
+app = "stokio"
+primary_region = "bog"   # Bogotá. Lo más cerca de Colombia.
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+  DATA_DIR = "/datos"
+
+# El disco donde vive inventario.db. Sin esto, cada despliegue
+# empezaría con la base vacía.
+[[mounts]]
+  source = "datos_stokio"
+  destination = "/datos"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+
+  # La máquina no se apaga sola. Con auto_stop el primer acceso tras un
+  # rato de inactividad tarda unos segundos en responder, y para atender a
+  # alguien en el mostrador esa espera estorba.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # Una sola máquina, a propósito: SQLite es un archivo en un disco y ese
+  # disco solo puede montarlo una máquina a la vez. Escalar a dos
+  # instancias corrompería la base.
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/salud"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

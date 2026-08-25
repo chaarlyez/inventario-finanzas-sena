@@ -2,7 +2,10 @@ const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');
 
-const dataDir = path.join(__dirname, '..', '..', 'data');
+// En producción la base vive en un disco montado aparte del código, y su
+// ruta llega por DATA_DIR. Sin esa variable se usa backend/data, que es
+// donde ha estado siempre en local.
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '..', '..', 'data');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const dbPath = path.join(dataDir, 'inventario.db');
