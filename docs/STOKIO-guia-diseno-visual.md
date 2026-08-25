@@ -27,7 +27,9 @@ La percepción al abrir el producto debe ser:
 - **Rapidez:** los botones principales, filtros y búsqueda son evidentes.
 - **Confianza:** tarjetas blancas, estados semánticos claros y datos fáciles de escanear.
 
-No usar degradados intensos, bordes pesados, sombras negras marcadas, iconos multicolor sin propósito, fondos oscuros como base ni tarjetas excesivamente redondeadas. El diseño base es claro; el morado se concentra en la marca, navegación activa, acciones primarias, foco y datos destacados.
+No usar degradados intensos, bordes pesados, sombras negras marcadas, iconos multicolor sin propósito ni tarjetas excesivamente redondeadas. El diseño base es claro; el morado se concentra en la marca, navegación activa, acciones primarias, foco y datos destacados.
+
+**Sobre el fondo oscuro.** El tema claro es el predeterminado y es el que define la personalidad del producto. Existe además un tema oscuro que el usuario puede activar desde su perfil (ver §20). No es una variante decorativa ni una inversión automática del tema claro: tiene sus propios pasos de color, verificados uno a uno. Nunca debe convertirse en el aspecto por defecto.
 
 ---
 
@@ -108,6 +110,16 @@ Usar estos valores como tokens. El tono base es un violeta profundo y energétic
 | Pendiente | `#7C3AED` | `#EDE9FE` | `#5B21B6` | Acción pendiente |
 
 Regla: los colores de estado siempre van acompañados de texto; nunca comunicar el estado solamente por color.
+
+### Serie secundaria de datos
+
+| Token | Hex | Uso |
+|---|---|---|
+| `--dato-teal` | `#0891B2` | Segunda serie en gráficos de dos variables (por ejemplo, salidas frente a entradas) |
+
+El morado de marca es siempre la serie principal. Cuando un gráfico necesita una segunda serie, esta es la única acompañante aprobada: el par morado/azul no es válido porque queda en ΔE 13,2 de separación en visión normal, por debajo del piso de 15, y dos lectores con visión plena no lograrían distinguir las líneas.
+
+No usar rosa, magenta ni ningún tono fuera de esta guía para representar datos.
 
 ---
 
@@ -221,17 +233,22 @@ Fondo blanco, borde derecho `1px solid #E5E7EB`; no usar fondo morado sólido co
 ### Navegación exacta
 
 1. Resumen
-2. Inventario
-3. Productos
+2. Productos
+3. Inventario
 4. Ambientes
-5. Movimientos
-6. Préstamos
+5. Distribuidores
+6. Movimientos de dinero
 7. Reportes
-8. Usuarios
+8. Alertas
+9. Usuarios (solo administrador)
+
+Esta lista refleja el dominio real del producto: STOKIO gestiona existencias de una tienda, no préstamo de activos. Por eso hay `Distribuidores` y `Movimientos de dinero`, y no hay `Préstamos`.
 
 El item activo (por ejemplo, `Resumen`) usa fondo `#EDE9FE`, texto `#6D28D9`, icono morado y peso 600. En hover: fondo `#F5F3FF`; el texto se mantiene oscuro/morado. Los items inactivos tienen icono y texto `#6B7280`.
 
-En la parte inferior mostrar: avatar circular con iniciales `CP`, nombre `Charly Pérez`, rol `Administrador` y un chevron de menú. No recargar con insignias numéricas en todos los ítems; como máximo una en `Préstamos` si hay pendientes.
+En la parte inferior mostrar: avatar circular con iniciales, nombre, rol y un chevron que abre el menú de perfil. Ese menú contiene `Datos del negocio`, `Apariencia` y `Cerrar sesión`, en ese orden y con la acción de salir separada por un divisor, en rojo. Si el negocio tiene nombre registrado, aparece bajo la marca en la parte superior de la barra.
+
+No recargar con insignias numéricas en todos los ítems; como máximo un punto en `Alertas` cuando haya productos por debajo del mínimo.
 
 ---
 
@@ -242,12 +259,12 @@ En la parte inferior mostrar: avatar circular con iniciales `CP`, nombre `Charly
 Distribución horizontal con saludo a la izquierda y acciones a la derecha.
 
 ```text
-¡Hola, Charly!                         [⛶ Escanear QR] [+ Registrar elemento]
+¡Hola, Charly!                         [⛶ Escanear QR] [+ Registrar producto]
 Aquí tienes el resumen de tu inventario.
 ```
 
 - Botón secundario `Escanear QR`: borde morado suave, fondo blanco, icono antes del texto.
-- Botón primario `Registrar elemento`: fondo `--purple-700`, texto blanco, icono `+` antes del texto.
+- Botón primario `Registrar producto`: fondo `--purple-700`, texto blanco, icono `+` antes del texto.
 - Ambos: alto 40 px, padding horizontal 16 px, separación 12 px.
 
 ### Grid de métricas
@@ -276,10 +293,13 @@ Título `Estado del inventario`, subtítulo `Distribución actual de 1.248 eleme
 
 Leyenda en lista, con punto de color, nombre, cantidad y porcentaje:
 
-- Disponible — 1.102 — 88,3% (verde)
-- Mantenimiento — 86 — 6,9% (ámbar)
-- Préstamo — 42 — 3,4% (azul)
-- Baja / pérdida — 18 — 1,4% (rojo)
+- En stock — verde
+- Stock bajo — ámbar
+- Sin stock — rojo
+
+Los tres estados salen del modelo de datos: un producto está **en stock** cuando supera su mínimo, en **stock bajo** cuando lo iguala o está por debajo, y **sin stock** cuando llega a cero. No existen los estados de préstamo o mantenimiento que tendría un inventario de activos.
+
+La leyenda lleva siempre nombre y cantidad junto al punto de color. No es decorativa: el par ámbar/verde queda en la banda 6–8 de separación para daltonismo, que solo es admisible acompañada de etiqueta directa.
 
 El morado puede aparecer como selección, anillo decorativo o serie secundaria; no usarlo para simular el estado verde.
 
@@ -311,7 +331,7 @@ La actividad reciente usa punto morado, línea gris claro y mensajes como: `Laur
 ### Cabecera de Inventario
 
 ```text
-Inventario                                      [+ Registrar elemento]
+Inventario                                      [+ Registrar producto]
 Gestiona y consulta todos los elementos registrados.
 ```
 
@@ -465,7 +485,7 @@ Contraseña                              ¿Olvidaste tu contraseña?
 - Gráficos: una columna, altura mínima 300 px. La dona puede pasar a 156 px.
 - Tabla: convertir cada fila en card de información **o** conservar scroll horizontal, pero no comprimir columnas hasta volverlas ilegibles. Para la vista general móvil se recomienda card: nombre/código, badge, ambiente, fecha y menú.
 - Filtros: botón `Filtrar` único que abre bottom sheet con Estado, Ambiente y Categoría.
-- Acciones flotantes: si se usa FAB `+`, debe abrir las dos opciones `Registrar elemento` y `Escanear QR`; no ocultar ambas acciones críticas sin señalización.
+- Acciones flotantes: si se usa FAB `+`, debe abrir las dos opciones `Registrar producto` y `Escanear QR`; no ocultar ambas acciones críticas sin señalización.
 
 ---
 
@@ -510,7 +530,7 @@ Usar tarjetas o áreas de contenido limpias con icono/ilustración monolineal mo
 [ilustración de cajas]
 Aún no hay elementos registrados
 Comienza agregando el primer elemento de tu inventario.
-[ Registrar elemento ]
+[ Registrar producto ]
 ```
 
 No usar mensajes fríos como "No data".
@@ -566,4 +586,60 @@ La implementación se considera fiel cuando cumple todos estos puntos:
 
 ## 19. Prompt operativo breve para Claude
 
-> Implementa STOKIO como una aplicación web de inventario en español. Debe ser un SaaS claro, juvenil y profesional, con Inter como tipografía y morado `#6D28D9` como color de marca. Construye un AppShell con sidebar blanca fija (248 px), logo isotipo de S/caja y navegación: Resumen, Inventario, Productos, Ambientes, Movimientos, Préstamos, Reportes y Usuarios. En el Dashboard crea saludo, botones "Escanear QR" y "Registrar elemento", cuatro tarjetas de métricas, gráfico de estado, inventario por ambiente, lista de atención y actividad. Usa fondo `#F8FAFC`, cards blancas con borde `#E5E7EB`, radio 12 px, sombra muy sutil, grid de 4 px y layout responsive. Incluye tabla de inventario, detalle de elemento, escáner QR, login, estados semánticos y comportamiento móvil exactamente según esta guía. No improvises otra estética, no uses degradados intensos ni fondo oscuro dominante.
+> Implementa STOKIO como una aplicación web de inventario de tienda en español. Debe ser un SaaS claro, juvenil y profesional, con Inter como tipografía y morado `#6D28D9` como color de marca. Construye un AppShell con sidebar blanca fija (248 px), logo isotipo de S/caja y navegación: Resumen, Productos, Inventario, Ambientes, Distribuidores, Movimientos de dinero, Reportes, Alertas y Usuarios. En el Dashboard crea saludo, botones "Escanear QR" y "Registrar producto", cuatro tarjetas de métricas, gráfico de dona con el estado del stock, inventario por ambiente en barras, lista de productos que requieren atención y actividad reciente. Usa fondo `#F8FAFC`, cards blancas con borde `#E5E7EB`, radio 12 px, sombra muy sutil, grid de 4 px y layout responsive. Incluye tabla de inventario, detalle de producto, escáner QR, login, estados semánticos y comportamiento móvil exactamente según esta guía. Añade el tema oscuro de §20 como preferencia del usuario, nunca como aspecto por defecto. No improvises otra estética ni uses degradados intensos.
+
+---
+
+## 20. Tema oscuro
+
+El tema oscuro es una preferencia del usuario, no el aspecto por defecto. Se elige desde `Apariencia`, en el menú de perfil, y se guarda por dispositivo.
+
+### Tres estados, no dos
+
+| Opción | Comportamiento |
+|---|---|
+| `Claro` | Fuerza el tema claro aunque el sistema esté en oscuro |
+| `Oscuro` | Fuerza el tema oscuro aunque el sistema esté en claro |
+| `Automático` | No marca nada y sigue a `prefers-color-scheme` |
+
+Implementación: `:root` define la paleta clara completa; una media query redefine solo los tokens para quien tiene el sistema en oscuro y no ha elegido nada, protegida con `:root:not([data-tema="claro"])`; y `:root[data-tema="oscuro"]` los redefine de nuevo para que la elección explícita gane en el otro sentido.
+
+Ningún color puede definirse únicamente dentro de la media query o del selector `[data-tema]`. Un color cuya única definición vive ahí no se aplica en el estado sin marcar, y la página termina pintando el texto de un tema sobre el fondo del otro.
+
+### Superficies
+
+| Token | Claro | Oscuro |
+|---|---|---|
+| `--bg` | `#F8FAFC` | `#131022` |
+| `--surface` | `#FFFFFF` | `#1C1830` |
+| `--line` | `#E5E7EB` | `#302A4A` |
+| `--ink-950` | `#111827` | `#F4F2FB` |
+| `--purple` (acento) | `#6D28D9` | `#A78BFA` |
+| `--sobre-acento` | `#FFFFFF` | `#17122B` |
+
+Los neutros oscuros llevan sesgo morado a propósito: un gris puro junto al acento se ve sucio. Sobre fondo oscuro el morado 700 se hunde, así que el acento sube al 400 y el texto que va encima pasa a ser oscuro, nunca blanco.
+
+### Gráficos: pasos propios, no una inversión
+
+La banda de luminosidad legible es más estrecha sobre fondo oscuro (OKLCH L 0,48–0,67 frente a 0,43–0,77), así que los colores del tema claro no sirven tal cual.
+
+| Uso | Claro | Oscuro |
+|---|---|---|
+| En stock | `#16A34A` | `#16A34A` |
+| Stock bajo | `#D97706` | `#D97706` |
+| Sin stock | `#DC2626` | `#E11D48` |
+| Serie principal | `#6D28D9` | `#8B5CF6` |
+| Serie secundaria | `#0891B2` | `#0891B2` |
+
+El rojo se desplaza a rosa en oscuro porque junto al ámbar quedaba en ΔE 14,4 en visión normal, por debajo del piso de 15.
+
+Los gráficos son SVG generado y llevan el color escrito en el atributo, así que no se actualizan solos al cambiar de tema: cada vista debe registrar cómo repintarse.
+
+### Reglas que no se negocian
+
+- El texto de una leyenda va en tinta neutra. El color de la serie lo lleva el punto, nunca el texto.
+- Todo texto cumple AA en **los dos** temas: 4,5:1 normal, 3:1 para texto grande.
+- El visor de la cámara del escáner se mantiene oscuro en ambos temas: es una previsualización de vídeo, no una superficie de la interfaz.
+- El panel de marca del login es morado oscuro en ambos temas, así que su texto usa claros fijos y no tokens que se invierten.
+
+---
