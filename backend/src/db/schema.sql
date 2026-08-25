@@ -9,6 +9,21 @@ CREATE TABLE IF NOT EXISTS ambientes (
   creado_en TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Datos de la tienda/negocio. Una sola fila (id = 1): son los datos de
+-- cabecera que salen en reportes y en la aplicación.
+CREATE TABLE IF NOT EXISTS negocio (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  nombre TEXT,
+  nit TEXT,
+  direccion TEXT,
+  ciudad TEXT,
+  telefono TEXT,
+  email TEXT,
+  moneda TEXT NOT NULL DEFAULT 'COP',
+  notas TEXT,
+  actualizado_en TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Proveedores/fabricantes a los que se les compra el inventario
 CREATE TABLE IF NOT EXISTS distribuidores (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

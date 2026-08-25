@@ -11,6 +11,7 @@ const productosRouter = require('./routes/productos');
 const movimientosInventarioRouter = require('./routes/movimientosInventario');
 const movimientosDineroRouter = require('./routes/movimientosDinero');
 const reportesRouter = require('./routes/reportes');
+const negocioRouter = require('./routes/negocio');
 const ventasRouter = require('./routes/ventas');
 const { cargarUsuario, requiereSesion } = require('./middleware/auth');
 
@@ -35,6 +36,7 @@ app.use('/api/productos', requiereSesion, productosRouter);
 app.use('/api/movimientos-inventario', requiereSesion, movimientosInventarioRouter);
 app.use('/api/movimientos-dinero', requiereSesion, movimientosDineroRouter);
 app.use('/api/reportes', requiereSesion, reportesRouter);
+app.use('/api/negocio', requiereSesion, negocioRouter);
 app.use('/api/ventas', requiereSesion, ventasRouter);
 
 // Frontend estático (las páginas se sirven siempre; lo que protege los

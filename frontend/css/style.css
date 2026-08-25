@@ -67,6 +67,26 @@
   --shadow-float: 0 10px 30px rgba(36, 20, 63, 0.14);
   --focus-ring: 0 0 0 3px rgba(109, 40, 217, 0.22);
 
+  /* Superficies y detalles que antes estaban escritos a mano */
+  --sobre-acento: #ffffff;      /* texto sobre un fondo del color de marca */
+  --line-suave: #f0f1f3;        /* separador interno de filas */
+  --hover-suave: #faf7ff;       /* fondo de fila al pasar el cursor */
+  --red-soft-hover: #fbd7d7;
+  --teal-texto: #155e75;
+  --overlay: rgba(20, 18, 40, 0.45);
+
+  /* Colores de los graficos. Van aparte de los badges porque el tema
+     oscuro necesita pasos propios: una inversion automatica saca los
+     tonos de la banda de luminosidad legible sobre fondo oscuro. */
+  --graf-ok: #16a34a;
+  --graf-bajo: #d97706;
+  --graf-critico: #dc2626;
+  --graf-serie-1: #6d28d9;
+  --graf-serie-2: #0891b2;
+  --graf-grid: #ebe9f5;
+  --graf-eje: #a9a8bd;
+  --graf-pista: #f1f0f6;
+
   /* Movimiento — guia §14: 150-250 ms, ease-out */
   --transicion: 160ms ease-out;
 
@@ -257,7 +277,7 @@ button { font-family: inherit; }
 
 .tabbar-movil a.activo {
   background: var(--purple);
-  color: white;
+  color: var(--sobre-acento);
 }
 
 .tabbar-movil a.activo .tab-icono .punto { border-color: var(--purple); }
@@ -440,7 +460,7 @@ button { font-family: inherit; }
   height: 38px;
   border-radius: 50%;
   background: var(--purple);
-  color: white;
+  color: var(--sobre-acento);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -482,7 +502,7 @@ main.contenido {
   margin: 0 0 0.2rem;
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--purple-950);
+  color: var(--ink-950);
 }
 
 .encabezado-pagina .subtitulo {
@@ -518,7 +538,7 @@ main.contenido {
   transition: background var(--transicion), border-color var(--transicion), transform var(--transicion);
 }
 
-.btn-primario { background: var(--purple); color: white; }
+.btn-primario { background: var(--purple); color: var(--sobre-acento); }
 .btn-primario:hover { background: var(--purple-hover); }
 /* Guia §14: al pulsar, oscurecer y reducir de forma casi imperceptible. */
 .btn-primario:active { background: var(--purple-800); transform: scale(0.98); }
@@ -527,8 +547,8 @@ main.contenido {
 .btn-secundario { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 .btn-secundario:hover { background: var(--surface-muted); }
 
-.btn-peligro { background: var(--red-soft); color: var(--red); }
-.btn-peligro:hover { background: #fbd7d7; }
+.btn-peligro { background: var(--red-soft); color: var(--red-texto); }
+.btn-peligro:hover { background: var(--red-soft-hover); }
 
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -555,7 +575,7 @@ main.contenido {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--sobre-acento);
   flex-shrink: 0;
 }
 
@@ -568,11 +588,11 @@ main.contenido {
 
 /* Variante suave: fondo tenue + icono a color. Es la que usa la guia §8
    para las tarjetas de metrica, para no tenir la tarjeta entera. */
-.icono-circulo.suave.morado { background: var(--purple-100); color: var(--purple-700); }
+.icono-circulo.suave.morado { background: var(--purple-100); color: var(--purple-texto); }
 .icono-circulo.suave.verde { background: var(--green-soft); color: var(--green-texto); }
 .icono-circulo.suave.naranja { background: var(--orange-soft); color: var(--orange-texto); }
 .icono-circulo.suave.rojo { background: var(--red-soft); color: var(--red-texto); }
-.icono-circulo.suave.teal { background: var(--dato-teal-soft); color: #155e75; }
+.icono-circulo.suave.teal { background: var(--dato-teal-soft); color: var(--teal-texto); }
 .icono-circulo.suave.azul { background: var(--blue-soft); color: var(--blue-texto); }
 
 /* Tarjeta de metrica — guia §8: etiqueta arriba, cifra grande debajo,
@@ -654,7 +674,7 @@ main.contenido {
   margin-bottom: 0.9rem;
 }
 
-.panel-cabecera h2 { margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--purple-950); }
+.panel-cabecera h2 { margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--ink-950); }
 
 .panel-cabecera a { color: var(--purple); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
 
@@ -683,15 +703,18 @@ main.contenido {
 
 .sin-alertas { color: var(--muted); font-size: 0.85rem; padding: 0.5rem; }
 
-.leyenda-chart { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--muted); }
+/* El texto de la leyenda va en tinta neutra y el punto es el que lleva el
+   color de la serie. Tenir tambien el texto lo dejaba en 3,68:1 sobre
+   blanco, por debajo de AA, y ademas confunde identidad con jerarquia. */
+.leyenda-chart { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--ink-700); }
 .leyenda-chart .punto-leyenda { display: inline-flex; align-items: center; gap: 0.35rem; }
 .leyenda-chart .punto-leyenda::before {
   content: "";
   width: 8px; height: 8px; border-radius: 50%;
-  background: currentColor;
+  background: var(--punto-color, currentColor);
 }
-.leyenda-chart .morado { color: var(--purple); }
-.leyenda-chart .teal { color: var(--dato-teal); }
+.leyenda-chart .morado { --punto-color: var(--graf-serie-1); }
+.leyenda-chart .teal { --punto-color: var(--graf-serie-2); }
 
 .chart-contenedor { flex: 1; min-height: 200px; }
 .chart-contenedor svg { width: 100%; height: 100%; display: block; }
@@ -766,7 +789,7 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 .badge-rojo { background: var(--red-soft); color: var(--red-texto); }
 .badge-morado { background: var(--purple-soft); color: var(--purple-texto); }
 .badge-azul { background: var(--blue-soft); color: var(--blue-texto); }
-.badge-teal { background: var(--dato-teal-soft); color: #155e75; }
+.badge-teal { background: var(--dato-teal-soft); color: var(--teal-texto); }
 .badge-naranja { background: var(--orange-soft); color: var(--orange-texto); }
 .badge-gris { background: var(--surface-muted); color: var(--ink-700); }
 
@@ -786,10 +809,10 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 }
 
 .btn-icono:hover { color: var(--purple); border-color: var(--purple-soft); background: var(--purple-soft); }
-.btn-icono.peligro:hover { color: var(--red); border-color: var(--red-soft); background: var(--red-soft); }
+.btn-icono.peligro:hover { color: var(--red-texto); border-color: var(--red-soft); background: var(--red-soft); }
 
-.valor-positivo { color: var(--green); font-weight: 600; }
-.valor-negativo { color: var(--red); font-weight: 600; }
+.valor-positivo { color: var(--green-texto); font-weight: 600; }
+.valor-negativo { color: var(--red-texto); font-weight: 600; }
 
 .tabla-vacio-fila td { color: var(--muted); text-align: center; padding: 2rem 1rem; white-space: normal; }
 
@@ -864,7 +887,7 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 .overlay-modal {
   position: fixed;
   inset: 0;
-  background: rgba(20, 18, 40, 0.45);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -944,8 +967,8 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
   margin: 0;
 }
 
-.mensaje.error { color: var(--red); }
-.mensaje.exito { color: var(--green); }
+.mensaje.error { color: var(--red-texto); }
+.mensaje.exito { color: var(--green-texto); }
 
 /* ---------- Drawer de detalle de producto ---------- */
 
@@ -996,7 +1019,7 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 
 .detalle-specs div { display: flex; flex-direction: column; gap: 0.15rem; }
 .detalle-specs span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
-.detalle-specs strong { font-size: 0.92rem; color: var(--purple-950); }
+.detalle-specs strong { font-size: 0.92rem; color: var(--ink-950); }
 
 .detalle-seccion {
   font-size: 0.78rem;
@@ -1212,7 +1235,7 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 .barra-item .barra-riel {
   height: 8px;
   border-radius: 999px;
-  background: var(--purple-100);
+  background: var(--purple-soft);
   overflow: hidden;
 }
 
@@ -1240,7 +1263,7 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
   align-items: center;
   gap: 0.85rem;
   padding: 0.7rem 0.4rem;
-  border-bottom: 1px solid #f0f1f3;
+  border-bottom: 1px solid var(--line-suave);
   text-decoration: none;
   color: var(--text);
   border-radius: var(--radius-sm);
@@ -1248,14 +1271,14 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 }
 
 .fila-atencion:last-child { border-bottom: none; }
-.fila-atencion:hover { background: #faf7ff; }
+.fila-atencion:hover { background: var(--hover-suave); }
 
 .fila-atencion .miniatura {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
   background: var(--purple-50);
-  color: var(--purple-700);
+  color: var(--purple-texto);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1366,7 +1389,7 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 
 .acciones-encabezado .btn-secundario {
   border-color: var(--purple-200);
-  color: var(--purple-700);
+  color: var(--purple-texto);
 }
 
 .acciones-encabezado .btn-secundario:hover {
@@ -1384,6 +1407,257 @@ tbody tr:hover { background: var(--purple-50); cursor: default; }
 .actividad-cuando {
   display: block;
 }
+
+
+/* ---------- Menú de perfil ---------- */
+
+.usuario-menu-sep {
+  height: 1px;
+  background: var(--line);
+  margin: 0.3rem 0.2rem;
+}
+
+/* El menú tiene varias entradas: la de cerrar sesión es la única roja,
+   para que la acción destructiva no se confunda con las demás. */
+.usuario-menu button {
+  color: var(--ink-700);
+}
+
+.usuario-menu button:hover { background: var(--surface-muted); }
+
+.usuario-menu button.peligro { color: var(--red-texto); }
+.usuario-menu button.peligro:hover { background: var(--red-soft); }
+
+.nombre-negocio {
+  padding: 0 0.5rem 0.9rem;
+  margin-top: -0.75rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Formulario de datos del negocio ---------- */
+
+.ayuda-modal {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.rejilla-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.75rem;
+}
+
+.rejilla-campos .campo-completo { grid-column: 1 / -1; }
+
+.campo textarea { resize: vertical; min-height: 68px; }
+
+.campo input:disabled, .campo textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .rejilla-campos { grid-template-columns: 1fr; }
+}
+
+/* ---------- Selector de tema ---------- */
+
+.opciones-tema {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.opcion-tema {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding: 0.85rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transicion), background var(--transicion);
+}
+
+.opcion-tema:hover { border-color: var(--purple-300); background: var(--purple-50); }
+
+.opcion-tema.activa {
+  border-color: var(--purple);
+  background: var(--purple-50);
+  box-shadow: inset 0 0 0 1px var(--purple);
+}
+
+.opcion-tema-icono { color: var(--muted); display: flex; }
+.opcion-tema.activa .opcion-tema-icono { color: var(--purple-texto); }
+
+.opcion-tema-nombre { font-size: 0.88rem; font-weight: 600; }
+.opcion-tema-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.3; }
+
+@media (max-width: 600px) {
+  .opciones-tema { grid-template-columns: 1fr; }
+  .opcion-tema { flex-direction: row; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+  .opcion-tema-desc { width: 100%; }
+}
+
+/* ---------- Tema oscuro ---------- */
+
+/* Sistema en oscuro y sin eleccion explicita. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    /* Neutros con sesgo morado: un gris puro al lado del acento se ve
+       sucio, y la guia pide que el morado sea la firma de marca. */
+    --bg: #131022;
+    --surface: #1c1830;
+    --surface-muted: #241f3c;
+    --line: #302a4a;
+
+    --ink-950: #f4f2fb;
+    --ink-800: #e2dff0;
+    --ink-700: #cfcbe2;
+    --ink-500: #a09bbb;
+    --ink-400: #7d7799;
+
+    /* Sobre fondo oscuro el morado 700 se hunde: el acento sube al 400 y
+       el texto que va encima pasa a ser oscuro, no blanco. */
+    --purple: #a78bfa;
+    --purple-hover: #c4b5fd;
+    --purple-texto: #c4b5fd;
+    --purple-soft: #2c2350;
+    --purple-50: #201a38;
+    --purple-100: #2c2350;
+    --purple-200: #3a2f66;
+    --purple-300: #4a3c80;
+    --sobre-acento: #17122b;
+
+    --line-suave: #292344;
+    --hover-suave: #241d40;
+    --overlay: rgba(8, 6, 18, 0.66);
+
+    /* Los colores base tambien se usan como texto suelto (valores, mensajes
+       de error) y como fondo de icono solido. Sobre superficie oscura los
+       pasos del tema claro no llegan a 4,5:1, asi que suben. */
+    --green: #34d399;
+    --red: #fb7185;
+    --orange: #fbbf24;
+    --blue: #93b8f9;
+    --dato-teal: #22d3ee;
+
+    /* Los colores base tambien se usan como texto suelto (valores, mensajes
+     de error) y como fondo de icono solido. Sobre superficie oscura los
+     pasos del tema claro no llegan a 4,5:1, asi que suben. */
+  --green: #34d399;
+  --red: #fb7185;
+  --orange: #fbbf24;
+  --blue: #93b8f9;
+  --dato-teal: #22d3ee;
+
+  /* Badges: fondo tenue oscuro y texto claro, cada par verificado a
+       4,5:1 o mas sobre su propio fondo. */
+    --green-soft: #0f2a1c;
+    --green-texto: #5ee79a;
+    --orange-soft: #2e2109;
+    --orange-texto: #fbbf24;
+    --amber-soft: #2e2109;
+    --red-soft: #331319;
+    --red-texto: #fb7185;
+    --red-soft-hover: #45191f;
+    --blue-soft: #14203d;
+    --blue-texto: #93b8f9;
+    --dato-teal-soft: #0c2830;
+    --teal-texto: #4dd7ef;
+
+    /* Pasos de grafico propios del tema oscuro, validados contra la
+       superficie: el rojo se desplaza a rosa para separarse del ambar,
+       que sobre fondo oscuro quedaban a dE 14,4 en vision normal. */
+    --graf-critico: #e11d48;
+    --graf-serie-1: #8b5cf6;
+    --graf-grid: #2b2545;
+    --graf-eje: #7d7799;
+    --graf-pista: #262040;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.24);
+    --shadow-float: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --focus-ring: 0 0 0 3px rgba(167, 139, 250, 0.35);
+  }
+}
+
+/* Eleccion explicita del usuario. */
+:root[data-tema="oscuro"] {
+  /* Neutros con sesgo morado: un gris puro al lado del acento se ve
+     sucio, y la guia pide que el morado sea la firma de marca. */
+  --bg: #131022;
+  --surface: #1c1830;
+  --surface-muted: #241f3c;
+  --line: #302a4a;
+
+  --ink-950: #f4f2fb;
+  --ink-800: #e2dff0;
+  --ink-700: #cfcbe2;
+  --ink-500: #a09bbb;
+  --ink-400: #7d7799;
+
+  /* Sobre fondo oscuro el morado 700 se hunde: el acento sube al 400 y
+     el texto que va encima pasa a ser oscuro, no blanco. */
+  --purple: #a78bfa;
+  --purple-hover: #c4b5fd;
+  --purple-texto: #c4b5fd;
+  --purple-soft: #2c2350;
+  --purple-50: #201a38;
+  --purple-100: #2c2350;
+  --purple-200: #3a2f66;
+  --purple-300: #4a3c80;
+  --sobre-acento: #17122b;
+
+  --line-suave: #292344;
+  --hover-suave: #241d40;
+  --overlay: rgba(8, 6, 18, 0.66);
+
+  /* Badges: fondo tenue oscuro y texto claro, cada par verificado a
+     4,5:1 o mas sobre su propio fondo. */
+  --green-soft: #0f2a1c;
+  --green-texto: #5ee79a;
+  --orange-soft: #2e2109;
+  --orange-texto: #fbbf24;
+  --amber-soft: #2e2109;
+  --red-soft: #331319;
+  --red-texto: #fb7185;
+  --red-soft-hover: #45191f;
+  --blue-soft: #14203d;
+  --blue-texto: #93b8f9;
+  --dato-teal-soft: #0c2830;
+  --teal-texto: #4dd7ef;
+
+  /* Pasos de grafico propios del tema oscuro, validados contra la
+     superficie: el rojo se desplaza a rosa para separarse del ambar,
+     que sobre fondo oscuro quedaban a dE 14,4 en vision normal. */
+  --graf-critico: #e11d48;
+  --graf-serie-1: #8b5cf6;
+  --graf-grid: #2b2545;
+  --graf-eje: #7d7799;
+  --graf-pista: #262040;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.24);
+  --shadow-float: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --focus-ring: 0 0 0 3px rgba(167, 139, 250, 0.35);
+}
+
+/* Evita el destello blanco mientras carga la hoja de estilos. */
+:root[data-tema="oscuro"] body,
+:root[data-tema="oscuro"] html { background: var(--bg); }
+
+/* El visor de la camara se mantiene oscuro en los dos temas: es una
+   previsualizacion de video, no una superficie de la interfaz. */
 
 /* ---------- Responsive ---------- */
 

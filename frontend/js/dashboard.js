@@ -142,9 +142,37 @@ function pintarActividad(movimientos) {
 
 // ---------- Carga ----------
 
-async function cargarDashboard() {
-  document.getElementById('btnEscanearQr').addEventListener('click', () => window.Layout.abrirEscanerQr());
+// Último juego de datos recibido. Se guarda para poder volver a dibujar al
+// cambiar de tema sin pedirle todo otra vez al servidor.
+let ultimosDatos = null;
 
+function pintarTodo({ productos, movimientos, ambientes }) {
+  pintarMetricas(productos);
+  renderizarDona(document.getElementById('donaEstado'), productos);
+  renderizarBarrasAmbiente(document.getElementById('barrasAmbientes'), ambientes);
+  pintarAtencion(productos);
+  pintarActividad(movimientos);
+
+  // Serie de los ultimos 7 dias para el grafico de lineas.
+  const hoyClave = new Date().toISOString().slice(0, 10);
+  const sumaPorDiaYTipo = (clave, tipo) => movimientos
+    .filter((m) => m.tipo === tipo && claveDia(m.fecha) === clave)
+    .reduce((acc, m) => acc + m.cantidad, 0);
+
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    const clave = sumarDiasClave(hoyClave, -i);
+    dias.push({
+      clave,
+      etiqueta: formatoFechaCorta(clave),
+      entradas: sumaPorDiaYTipo(clave, 'entrada'),
+      salidas: sumaPorDiaYTipo(clave, 'salida'),
+    });
+  }
+  renderizarChart(document.getElementById('chartMovimientos'), dias);
+}
+
+async function cargarDashboard() {
   try {
     const [productos, movimientos, ambientes] = await Promise.all([
       apiGet('/productos'),
@@ -152,29 +180,8 @@ async function cargarDashboard() {
       apiGet('/ambientes'),
     ]);
 
-    pintarMetricas(productos);
-    renderizarDona(document.getElementById('donaEstado'), productos);
-    renderizarBarrasAmbiente(document.getElementById('barrasAmbientes'), ambientes);
-    pintarAtencion(productos);
-    pintarActividad(movimientos);
-
-    // Serie de los ultimos 7 dias para el grafico de lineas.
-    const hoyClave = new Date().toISOString().slice(0, 10);
-    const sumaPorDiaYTipo = (clave, tipo) => movimientos
-      .filter((m) => m.tipo === tipo && claveDia(m.fecha) === clave)
-      .reduce((acc, m) => acc + m.cantidad, 0);
-
-    const dias = [];
-    for (let i = 6; i >= 0; i--) {
-      const clave = sumarDiasClave(hoyClave, -i);
-      dias.push({
-        clave,
-        etiqueta: formatoFechaCorta(clave),
-        entradas: sumaPorDiaYTipo(clave, 'entrada'),
-        salidas: sumaPorDiaYTipo(clave, 'salida'),
-      });
-    }
-    renderizarChart(document.getElementById('chartMovimientos'), dias);
+    ultimosDatos = { productos, movimientos, ambientes };
+    pintarTodo(ultimosDatos);
   } catch (err) {
     console.error(err);
   }
@@ -196,4 +203,12 @@ function personalizarSaludo() {
 
 pintarIconos();
 personalizarSaludo();
+document.getElementById('btnEscanearQr').addEventListener('click', () => window.Layout.abrirEscanerQr());
 cargarDashboard();
+
+// Los gráficos son SVG con el color escrito en el atributo: al cambiar de
+// tema hay que volver a dibujarlos para que tomen los pasos del tema nuevo.
+// Se repinta con los datos ya cargados, sin volver a llamar al servidor.
+window.Layout.alCambiarTema(() => {
+  if (ultimosDatos) pintarTodo(ultimosDatos);
+});
