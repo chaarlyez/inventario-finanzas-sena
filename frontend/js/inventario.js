@@ -103,7 +103,7 @@ function renderTablaProductos(lista) {
             <td><span class="badge ${estado.clase}">${estado.texto}</span></td>
             <td>
               <div class="acciones-fila">
-                <button type="button" class="btn-icono" title="Ver detalle" data-detalle="${p.id}">${icono('externalLink', 15)}</button>
+                <button type="button" class="btn-icono" title="Ver detalle" data-detalle="${p.id}">${icono('ver', 15)}</button>
                 <button type="button" class="btn-icono" title="Registrar venta" data-vender="${p.id}">${icono('cash', 15)}</button>
                 <button type="button" class="btn-icono" title="Editar" data-editar="${p.id}">${icono('pencil', 15)}</button>
                 <button type="button" class="btn-icono peligro" title="Eliminar" data-eliminar="${p.id}">${icono('trash', 15)}</button>

@@ -17,45 +17,23 @@ body.pagina-login {
   color: white;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   padding: 3rem;
-  gap: 0.75rem;
+  gap: 1.25rem;
+  text-align: center;
 }
 
 .login-marca-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 0.5rem;
-}
-
-.login-marca-logo .logo-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.14);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.login-marca-texto {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.login-marca-slogan {
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin: 0;
-  color: white;
+  max-width: 220px;
+  width: 60%;
+  height: auto;
 }
 
 .login-marca-desc {
   color: var(--purple-100);
   margin: 0;
-  max-width: 320px;
+  max-width: 280px;
   line-height: 1.5;
 }
 
@@ -120,7 +98,8 @@ body.pagina-login {
     gap: 0.35rem;
   }
 
-  .login-marca-slogan, .login-marca-desc { display: none; }
+  .login-marca-logo { width: 40%; max-width: 140px; }
+  .login-marca-desc { display: none; }
 
   .login-formulario { padding: 2rem 1.25rem; }
 }

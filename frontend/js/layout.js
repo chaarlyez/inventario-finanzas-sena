@@ -1,31 +1,39 @@
 // Construye el sidebar y la barra superior en todas las páginas, y expone
 // utilidades compartidas (iconos, modal, badges, gráfico) en `window.Layout`.
 
+// Geometría tomada tal cual del set oficial de iconos de marca
+// (frontend/assets/stokio/iconos.svg), pero sin el stroke="#A855F7" fijo:
+// aquí se pinta con currentColor para poder heredar color según el
+// contexto (blanco sobre círculos morados, gris inactivo, rojo en
+// eliminar, etc.) — ver el README de esa carpeta para más detalle.
 const ICONOS = {
-  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>',
-  box: '<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/>',
+  home: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  box: '<path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 7 9 5 9-5M3 7v10l9 5 9-5V7"/>',
   cash: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.75c0-1 .9-1.75 2.5-1.75s2.5.7 2.5 1.5c0 2-5 1.25-5 3.25 0 .9 1 1.75 2.5 1.75s2.5-.75 2.5-1.75"/><path d="M12 6.5v11"/>',
-  chart: '<path d="M4 19h16"/><path d="M7 19V10"/><path d="M12 19V5"/><path d="M17 19v-7"/>',
+  chart: '<path d="M4 20V4m0 16h16M7 16l4-4 3 2 5-6"/>',
   alert: '<path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4"/><path d="M12 17h.01"/>',
-  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
-  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  search: '<circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/>',
+  bell: '<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.75c0 1.5-2.15 1.85-2.4 3"/><path d="M12 17h.01"/>',
   menu: '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
   close: '<path d="m6 6 12 12"/><path d="m18 6-12 12"/>',
-  plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
-  pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/>',
-  trash: '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  pencil: '<path d="m4 20 4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"/><path d="m13.5 8.5 3 3"/>',
+  trash: '<path d="M4 7h16M10 11v6m4-6v6M9 7l1-3h4l1 3m-9 0 1 13h10l1-13"/>',
+  ver: '<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/>',
   entrada: '<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>',
   salida: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
   chevronRight: '<path d="m9 6 6 6-6 6"/>',
   externalLink: '<path d="M7 17 17 7"/><path d="M8 7h9v9"/>',
-  package: '<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 21v-8"/>',
-  mapPin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
-  users: '<path d="M17 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 5 18.5V20"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M19 20v-1.5a3 3 0 0 0-2.2-2.9"/><path d="M15 4.2a3.5 3.5 0 0 1 0 6.6"/>',
+  mapPin: '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/>',
+  users: '<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6m2 9v-2a6 6 0 0 0-3-5.2"/>',
   truck: '<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/>',
-  arrowLeftRight: '<path d="m8 3-4 4 4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
+  arrowLeftRight: '<path d="M4 7h13m0 0-3-3m3 3-3 3M20 17H7m0 0 3-3m-3 3 3 3"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
-  qrCode: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M20 14h1v1h-1z"/><path d="M14 20h1v1h-1z"/><path d="M20 20h1v1h-1z"/>',
+  qrCode: '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2m2 0h2m-6 3h3m3-1v4m-3 0h2"/>',
+  camara: '<path d="M4 7h4l2-2h4l2 2h4v12H4V7Z"/><circle cx="12" cy="13" r="3"/>',
+  impresora: '<path d="M6 9V4h12v5M6 18H4V10h16v8h-2M7 15h10v5H7z"/>',
+  configuracion: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06-2.2 2.2-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V20.4h-3.1v-.1A1.7 1.7 0 0 0 10.5 18.7a1.7 1.7 0 0 0-1.87.34l-.06.06-2.2-2.2.06-.06A1.7 1.7 0 0 0 6.77 15a1.7 1.7 0 0 0-1.57-1H5.1v-3.1h.1A1.7 1.7 0 0 0 6.77 9.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06 2.2-2.2.06.06a1.7 1.7 0 0 0 1.87.34 1.7 1.7 0 0 0 1.03-1.56V4.5h3.1v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06 2.2 2.2-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.57 1h.1V14h-.1A1.7 1.7 0 0 0 19.4 15Z"/>',
   chevronDown: '<path d="m6 9 6 6 6-6"/>',
 };
 
@@ -53,7 +61,7 @@ function construirLayout() {
   sidebar.className = 'sidebar';
   sidebar.innerHTML = `
     <div class="logo">
-      <span class="logo-icon">${construirIcono('package', 20)}</span>
+      <img class="logo-icon" src="assets/stokio/isotipo.svg" alt="" width="30" height="34" />
       <span class="logo-text">STOKIO</span>
     </div>
     <ul class="nav-lista">
