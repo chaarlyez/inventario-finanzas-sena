@@ -34,7 +34,10 @@ Un producto puede tener muchos movimientos de inventario y muchos movimientos de
 | stock_minimo     | INTEGER | Para alertas de reabastecimiento         |
 | ambiente_id      | INTEGER | FK a `ambientes`, opcional                |
 | distribuidor_id  | INTEGER | FK a `distribuidores`, opcional           |
+| orden            | INTEGER | Posición en el catálogo (para que las tallas salgan S, M, L, XL y no por orden alfabético). Un producto nuevo queda al final |
 | creado_en        | TEXT    | Fecha de creación                        |
+
+Cada combinación de modelo, color y talla es un producto aparte, con su propio SKU (patrón `CAM-<CORTE>-<COLOR>-<TALLA>`, por ejemplo `CAM-OVE-NEG-L`) y su propio stock. El SKU es lo único que lleva el código QR de las etiquetas.
 
 ### `ambientes`
 
@@ -56,6 +59,23 @@ Un producto puede tener muchos movimientos de inventario y muchos movimientos de
 | email         | TEXT    | Opcional                                  |
 | notas         | TEXT    | Opcional                                  |
 | creado_en     | TEXT    | Fecha de creación                         |
+
+### `negocio`
+
+Los datos de cabecera del negocio, que salen en la aplicación y en los reportes. Tiene **una sola fila** (`id = 1`), que se crea vacía la primera vez que alguien la consulta. Solo un administrador puede editarla.
+
+| Campo          | Tipo    | Notas                                              |
+|----------------|---------|------------------------------------------------------|
+| id             | INTEGER | Llave primaria; la base solo admite el valor 1       |
+| nombre         | TEXT    | Opcional, máximo 120 caracteres                      |
+| nit            | TEXT    | Opcional                                             |
+| direccion      | TEXT    | Opcional                                             |
+| ciudad         | TEXT    | Opcional                                             |
+| telefono       | TEXT    | Opcional                                             |
+| email          | TEXT    | Opcional; si se informa, debe tener formato de correo |
+| moneda         | TEXT    | Por defecto `COP`                                    |
+| notas          | TEXT    | Opcional                                             |
+| actualizado_en | TEXT    | Fecha de la última modificación                      |
 
 ### `usuarios`
 
@@ -100,6 +120,14 @@ Un producto puede tener muchos movimientos de inventario y muchos movimientos de
 | producto_id   | INTEGER | FK a `productos`, opcional                           |
 | cantidad      | INTEGER | Opcional, unidades relacionadas (ej. unidades vendidas) |
 | fecha         | TEXT    | Fecha del movimiento                                 |
+
+## Fechas y zona horaria
+
+Todas las fechas (`creado_en`, `fecha`, `actualizado_en`) se guardan en **UTC** con el formato `AAAA-MM-DD HH:MM:SS`. Colombia está 5 horas por detrás, así que una venta hecha a las 8 p. m. en Bogotá queda con la fecha del día siguiente. Hay que tenerlo en cuenta al filtrar por día.
+
+## Migraciones
+
+Al arrancar, `backend/src/db/db.js` ejecuta `schema.sql` (con `CREATE TABLE IF NOT EXISTS`) y luego agrega con `ALTER TABLE` las columnas que falten en bases ya existentes (`ambiente_id`, `distribuidor_id`, `orden`). Las migraciones no tienen número de versión ni se registra cuáles corrieron. Más detalle en la documentación de arquitectura de datos del repositorio `stokio-docs` (`06-data/models.md`).
 
 ## Registrar una venta
 
